@@ -6,6 +6,7 @@
 # =====================================================
 
 import logging
+import threading
 from datetime import datetime
 from typing import Dict, List, Optional
 
@@ -33,6 +34,7 @@ class SignalGenerator:
         self.min_confluence = ICT_PARAMS.get("min_confluence_normal", 3)
         self.scan_interval = 60  # saniye
         self._last_scan = {}
+        self._scan_lock = threading.Lock()
 
     def generate_signal(self, instrument_key: str, entry_tf: str = "1h") -> Dict:
         """
@@ -111,6 +113,15 @@ class SignalGenerator:
         Tüm enstrümanları tara, sinyal üret.
         Returns: sinyal listesi
         """
+        if not self._scan_lock.acquire(blocking=False):
+            logger.info("⏳ Tarama zaten devam ediyor, atlanıyor")
+            return []
+        try:
+            return self._scan_all_locked(entry_tf)
+        finally:
+            self._scan_lock.release()
+
+    def _scan_all_locked(self, entry_tf: str) -> List[Dict]:
         logger.info(f"═══ FOREX TARAMA BAŞLIYOR ({entry_tf}) ═══")
         results = []
 

@@ -1312,12 +1312,13 @@ class ICTEngine:
             tp1 = round(cur_price + risk * tp1_rr, 5)
             tp2 = round(cur_price + risk * tp2_rr, 5)
         else:
+            # SHORT: SL entry'nin ÜSTÜNDE olmalı
             atr_sl = cur_price + atr * sl_mult
             swing_sl = recent_high + atr * 0.15
             candidates = [atr_sl, swing_sl]
             if ob_top:
                 candidates.append(ob_top + atr * 0.1)
-            sl = round(min(candidates), 5)
+            sl = round(max(candidates), 5)  # max: en güvenli (en yüksek) SL
             if abs(sl - cur_price) < atr * 0.4:
                 sl = round(atr_sl, 5)
             risk = abs(sl - cur_price)

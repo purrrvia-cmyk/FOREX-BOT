@@ -9,6 +9,7 @@
 # =====================================================
 
 import logging
+import threading
 from datetime import datetime
 from typing import Dict, List, Optional
 
@@ -35,11 +36,19 @@ class TradeManager:
         self.be_threshold = ICT_PARAMS.get("be_threshold_pct", 60) / 100
         self.trailing_threshold = ICT_PARAMS.get("trailing_threshold_pct", 75) / 100
         self.trailing_lock_pct = ICT_PARAMS.get("trailing_lock_pct", 50) / 100
+        self._trade_lock = threading.Lock()
 
     def open_new_trade(self, signal_data: Dict, signal_id: int = None) -> Optional[int]:
         """
         Yeni sinyal geldiğinde trade aç.
-        Aynı enstrümanda zaten açık trade varsa AÇMA.
+        Kontroller:
+         - WAIT sinyali → açma
+         - Aynı enstrümanda açık trade → açma
+         - Max eşzamanlı trade limiti → açma
+         - Aynı yönde max trade limiti → açma
+         - Cooldown süresi → açma
+         - SL/TP yoksa → açma
+         - SL yönü yanlışsa → açma
         """
         instrument = signal_data.get("instrument")
         signal = signal_data.get("signal", "WAIT")
@@ -47,6 +56,13 @@ class TradeManager:
         if signal == "WAIT":
             return None
 
+        direction = "LONG" if "LONG" in signal else "SHORT"
+
+        with self._trade_lock:
+            return self._open_trade_locked(signal_data, signal_id, instrument, direction)
+
+    def _open_trade_locked(self, signal_data, signal_id, instrument, direction):
+        """Lock altında trade açma — race condition önlenir."""
         # Aynı enstrümanda açık trade var mı?
         open_trades = db.get_open_trades()
         for t in open_trades:
@@ -54,13 +70,59 @@ class TradeManager:
                 logger.info(f"{instrument} için zaten açık trade var (ID:{t['id']})")
                 return None
 
+        # Max eşzamanlı trade limiti
+        max_concurrent = ICT_PARAMS.get("max_concurrent_trades", 3)
+        if len(open_trades) >= max_concurrent:
+            logger.info(f"Max eşzamanlı trade limiti ({max_concurrent}) dolu")
+            return None
+
+        # Aynı yönde max trade limiti
+        max_same_dir = ICT_PARAMS.get("max_same_direction", 2)
+        same_dir_count = sum(1 for t in open_trades if t["direction"] == direction)
+        if same_dir_count >= max_same_dir:
+            logger.info(f"Aynı yönde ({direction}) max {max_same_dir} trade limiti dolu")
+            return None
+
+        # Cooldown kontrolü: Son kapatılan trade'den beri bekleme süresi
+        cooldown_min = ICT_PARAMS.get("signal_cooldown_minutes", 30)
+        recent_trades = db.get_trades(instrument=instrument, limit=1)
+        if recent_trades:
+            last_trade = recent_trades[0]
+            closed_at = last_trade.get("closed_at")
+            if closed_at:
+                try:
+                    from datetime import datetime as dt_cls
+                    closed_time = dt_cls.fromisoformat(closed_at)
+                    elapsed = (datetime.now() - closed_time).total_seconds() / 60
+                    if elapsed < cooldown_min:
+                        logger.info(f"{instrument}: Cooldown aktif ({elapsed:.0f}/{cooldown_min} dk)")
+                        return None
+                except (ValueError, TypeError):
+                    pass
+
         sl_tp = signal_data.get("sl_tp")
         if not sl_tp:
             logger.warning(f"{instrument}: SL/TP hesaplanamadı, trade açılmıyor")
             return None
 
-        direction = "LONG" if "LONG" in signal else "SHORT"
+        # SL yön kontrolü
         entry_price = signal_data.get("price", 0)
+        sl_price = sl_tp["sl"]
+        tp1_price = sl_tp["tp1"]
+        if direction == "LONG":
+            if sl_price >= entry_price:
+                logger.warning(f"{instrument}: LONG SL ({sl_price}) >= entry ({entry_price}), trade açılmıyor")
+                return None
+            if tp1_price <= entry_price:
+                logger.warning(f"{instrument}: LONG TP1 ({tp1_price}) <= entry ({entry_price}), trade açılmıyor")
+                return None
+        else:  # SHORT
+            if sl_price <= entry_price:
+                logger.warning(f"{instrument}: SHORT SL ({sl_price}) <= entry ({entry_price}), trade açılmıyor")
+                return None
+            if tp1_price >= entry_price:
+                logger.warning(f"{instrument}: SHORT TP1 ({tp1_price}) >= entry ({entry_price}), trade açılmıyor")
+                return None
 
         trade_id = db.open_trade(
             signal_id=signal_id or 0,
