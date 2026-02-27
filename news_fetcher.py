@@ -14,7 +14,8 @@
 import logging
 import sqlite3
 import hashlib
-from datetime import datetime, timedelta
+import calendar
+from datetime import datetime, timedelta, date
 from typing import List, Dict, Optional
 
 try:
@@ -317,24 +318,146 @@ class NewsFetcher:
         except Exception as e:
             logger.debug(f"News save hatası: {e}")
 
+    # ── Gerçek tarih hesaplama yardımcıları ──
+
+    @staticmethod
+    def _next_nth_weekday(year: int, month: int, weekday: int, n: int) -> date:
+        """Ayın n'inci belirli gününü bul (ör. ilk Cuma → weekday=4, n=1)"""
+        c = calendar.monthcalendar(year, month)
+        count = 0
+        for week in c:
+            if week[weekday] != 0:
+                count += 1
+                if count == n:
+                    return date(year, month, week[weekday])
+        return date(year, month, 15)  # fallback
+
+    @staticmethod
+    def _next_mid_month(year: int, month: int, target_range=(10, 14)) -> date:
+        """Ayın 10-14 arası iş gününü bul"""
+        for d in range(target_range[0], target_range[1] + 1):
+            try:
+                dt = date(year, month, d)
+                if dt.weekday() < 5:  # iş günü
+                    return dt
+            except ValueError:
+                pass
+        return date(year, month, 13)
+
+    def _calc_event_dates(self, evt_name: str, now: date) -> List[date]:
+        """
+        Recurring event için yaklaşan gerçek tarihleri hesapla.
+        Basit kural motoru ile ayda 1-2 tarih üretir.
+        """
+        results = []
+        year, month = now.year, now.month
+
+        # Sonraki 3 ayı tara
+        for m_offset in range(3):
+            y = year + (month + m_offset - 1) // 12
+            m = (month + m_offset - 1) % 12 + 1
+
+            try:
+                if "NFP" in evt_name or "Non-Farm" in evt_name:
+                    # İlk Cuma
+                    d = self._next_nth_weekday(y, m, 4, 1)  # 4 = Friday
+                    results.append(d)
+                elif "FOMC" in evt_name:
+                    # ~6 haftada bir Çarşamba → Ocak, Mart, Mayıs, Haziran, Temmuz, Eylül, Kasım, Aralık
+                    fomc_months = [1, 3, 5, 6, 7, 9, 11, 12]
+                    if m in fomc_months:
+                        # Genelde ayın 3. Çarşambası
+                        d = self._next_nth_weekday(y, m, 2, 3)  # 2 = Wednesday
+                        results.append(d)
+                elif "CPI" in evt_name and "EUR" not in evt_name and "UK" not in evt_name:
+                    # ABD CPI - ayın 10-13'ü arası
+                    d = self._next_mid_month(y, m, (10, 13))
+                    results.append(d)
+                elif "ECB" in evt_name:
+                    ecb_months = [1, 3, 4, 6, 7, 9, 10, 12]
+                    if m in ecb_months:
+                        d = self._next_nth_weekday(y, m, 3, 2)  # 2. Perşembe
+                        results.append(d)
+                elif "BoE" in evt_name and "Faiz" in evt_name:
+                    boe_months = [2, 3, 5, 6, 8, 9, 11, 12]
+                    if m in boe_months:
+                        d = self._next_nth_weekday(y, m, 3, 1)  # 1. Perşembe
+                        results.append(d)
+                elif "BoJ" in evt_name:
+                    boj_months = [1, 3, 4, 6, 7, 9, 10, 12]
+                    if m in boj_months:
+                        d = self._next_nth_weekday(y, m, 3, 3)  # 3. Perşembe
+                        results.append(d)
+                elif "RBA" in evt_name:
+                    if m != 1:  # Ocak hariç
+                        d = self._next_nth_weekday(y, m, 1, 1)  # 1. Salı
+                        results.append(d)
+                elif "BoC" in evt_name:
+                    boc_months = [1, 3, 4, 6, 7, 9, 10, 12]
+                    if m in boc_months:
+                        d = self._next_nth_weekday(y, m, 2, 2)  # 2. Çarşamba
+                        results.append(d)
+                elif "ISM" in evt_name:
+                    d = self._next_nth_weekday(y, m, 0, 1)  # İlk Pazartesi (iş günü)
+                    results.append(d)
+                elif "Retail" in evt_name:
+                    d = self._next_mid_month(y, m, (13, 16))
+                    results.append(d)
+                elif "UK CPI" in evt_name or ("CPI" in evt_name and "UK" in evt_name):
+                    d = self._next_mid_month(y, m, (14, 17))
+                    results.append(d)
+                elif "Euro" in evt_name and "CPI" in evt_name:
+                    # Ayın son iş günü civarı
+                    last_day = calendar.monthrange(y, m)[1]
+                    for dd in range(last_day, last_day - 5, -1):
+                        dt = date(y, m, dd)
+                        if dt.weekday() < 5:
+                            results.append(dt)
+                            break
+            except Exception:
+                pass
+
+        # Bugünden itibaren olanları filtrele ve sırala
+        results = [d for d in results if d >= now]
+        results.sort()
+        return results[:2]  # En yakın 2 tarih
+
     def get_upcoming_events(self) -> List[Dict]:
         """
         Yaklaşan yüksek etkili olayları döndür.
-        Built-in takvimden + RSS'den birleştirilmiş.
+        Gerçek tahmini tarihlerle, tarihe göre sıralı.
         """
         events = []
-        now = datetime.now()
-        weekday = now.weekday()  # 0=Pazartesi
+        today = date.today()
 
         for evt in RECURRING_EVENTS:
-            events.append({
-                "name": evt["name"],
-                "currency": evt["currency"],
-                "impact": evt["impact"],
-                "schedule": evt["schedule"],
-                "desc": evt["desc"],
-                "avoid_pairs": evt["avoid_pairs"],
-            })
+            dates = self._calc_event_dates(evt["name"], today)
+            if dates:
+                for d in dates:
+                    days_left = (d - today).days
+                    if days_left <= 45:  # 45 gün içindekiler
+                        events.append({
+                            "name": evt["name"],
+                            "currency": evt["currency"],
+                            "impact": evt["impact"],
+                            "date": d.strftime("%d.%m.%Y"),
+                            "days_left": days_left,
+                            "schedule": f"{d.strftime('%d %B %Y')} ({days_left} gun sonra)" if days_left > 0 else "BUGUN!",
+                            "desc": evt["desc"],
+                            "avoid_pairs": evt["avoid_pairs"],
+                        })
+            else:
+                # Tarih hesaplanamadıysa genel bilgi göster
+                events.append({
+                    "name": evt["name"],
+                    "currency": evt["currency"],
+                    "impact": evt["impact"],
+                    "date": "",
+                    "days_left": 99,
+                    "schedule": evt["schedule"],
+                    "desc": evt["desc"],
+                    "avoid_pairs": evt["avoid_pairs"],
+                })
 
         # RSS'den yüksek etkili haberler
         news = self.fetch_rss_news()
@@ -344,12 +467,16 @@ class NewsFetcher:
                     "name": n["title"][:80],
                     "currency": n["currency"],
                     "impact": "HIGH",
+                    "date": "",
+                    "days_left": 0,
                     "schedule": n["published"],
                     "desc": n["summary"][:200],
                     "avoid_pairs": [],
                     "source": n["source"],
                 })
 
+        # Tarihe göre sırala (bugüne en yakın önce)
+        events.sort(key=lambda x: x.get("days_left", 99))
         return events
 
     def get_news_for_pair(self, instrument_key: str) -> Dict:
