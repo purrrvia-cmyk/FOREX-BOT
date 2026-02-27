@@ -132,9 +132,9 @@ ICT_PARAMS = {
     "tp2_rr": 3.0,                # TP2 R:R oranı
 
     # Trade Management
-    "be_threshold_pct": 0.60,      # Breakeven tetikleme: TP'nin %60'ı
-    "trailing_threshold_pct": 0.75, # Trailing tetikleme: TP'nin %75'i
-    "trailing_lock_pct": 0.50,     # Trailing kâr kilitleme: %50
+    "be_threshold_pct": 60,         # Breakeven tetikleme: TP'nin %60'ı
+    "trailing_threshold_pct": 75,    # Trailing tetikleme: TP'nin %75'i
+    "trailing_lock_pct": 50,        # Trailing kâr kilitleme: %50
 
     # Risk Management
     "max_concurrent_trades": 3,    # Max eşzamanlı işlem
@@ -164,10 +164,10 @@ SILVER_BULLET = {
 # ── HABER KAYNAKLARI ──
 NEWS_CONFIG = {
     "enabled": True,
-    "rss_feeds": [
-        "https://www.forexlive.com/feed/news",
-        "https://www.fxstreet.com/rss/news",
-    ],
+    "rss_feeds": {
+        "ForexLive": "https://www.forexlive.com/feed/news",
+        "FXStreet": "https://www.fxstreet.com/rss/news",
+    },
     "high_impact_pause_minutes": 30,  # Yüksek etkili haber öncesi/sonrası trade askıya al
     "check_interval_seconds": 300,    # Haber kontrolü (5 dk)
 }
