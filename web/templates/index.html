@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0e17">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="FOREX-BOT ICT/SMC Trading">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="/static/icon-192.png">
+    <link rel="apple-touch-icon" href="/static/icon-192.png">
+    <title>FOREX-BOT v2.0</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+<body>
+    <!-- ═══ NAV BAR ═══ -->
+    <nav class="nav-bar">
+        <div class="nav-brand">
+            <span class="logo">📊</span>
+            <span class="brand-text">FOREX-BOT</span>
+            <span class="version">v2.0</span>
+        </div>
+        <div class="nav-status">
+            <span id="kz-badge" class="badge badge-dim">KZ: --</span>
+            <span id="balance-badge" class="badge badge-green">$50.00</span>
+            <span id="ws-indicator" class="ws-dot offline"></span>
+        </div>
+    </nav>
+
+    <!-- ═══ TABS ═══ -->
+    <div class="tab-bar">
+        <button class="tab active" data-tab="dashboard">Dashboard</button>
+        <button class="tab" data-tab="signals">Sinyaller</button>
+        <button class="tab" data-tab="trades">İşlemler</button>
+        <button class="tab" data-tab="analysis">Analiz</button>
+        <button class="tab" data-tab="learning">Öğrenme</button>
+    </div>
+
+    <!-- ═══ DASHBOARD ═══ -->
+    <section id="tab-dashboard" class="tab-content active">
+        <!-- Capital Cards -->
+        <div class="card-row">
+            <div class="card stat-card">
+                <div class="stat-label">Bakiye</div>
+                <div class="stat-value" id="stat-balance">$50.00</div>
+            </div>
+            <div class="card stat-card">
+                <div class="stat-label">Günlük P&L</div>
+                <div class="stat-value" id="stat-daily-pnl">$0.00</div>
+            </div>
+            <div class="card stat-card">
+                <div class="stat-label">Açık İşlem</div>
+                <div class="stat-value" id="stat-open-trades">0</div>
+            </div>
+            <div class="card stat-card">
+                <div class="stat-label">Kazanma %</div>
+                <div class="stat-value" id="stat-winrate">0%</div>
+            </div>
+        </div>
+
+        <!-- Kill Zone Status -->
+        <div class="card" id="kz-card">
+            <div class="card-header">
+                <span>⏰ Kill Zone Durumu</span>
+                <span id="kz-status-text" class="badge badge-dim">Yükleniyor</span>
+            </div>
+            <div class="kz-timeline" id="kz-timeline"></div>
+        </div>
+
+        <!-- Instrument Grid -->
+        <div class="card">
+            <div class="card-header">
+                <span>💱 Enstrümanlar</span>
+                <button class="btn btn-sm" onclick="refreshPrices()">↻</button>
+            </div>
+            <div class="instrument-grid" id="instrument-grid"></div>
+        </div>
+
+        <!-- Balance Chart -->
+        <div class="card">
+            <div class="card-header">💰 Sermaye Grafiği</div>
+            <div id="balance-chart" style="height: 250px;"></div>
+        </div>
+    </section>
+
+    <!-- ═══ SİNYALLER ═══ -->
+    <section id="tab-signals" class="tab-content">
+        <div class="card">
+            <div class="card-header">
+                <span>🎯 Aktif Sinyaller</span>
+                <button class="btn btn-sm btn-primary" onclick="scanAll()">Tara</button>
+            </div>
+            <div id="signal-list" class="signal-list"></div>
+        </div>
+    </section>
+
+    <!-- ═══ İŞLEMLER ═══ -->
+    <section id="tab-trades" class="tab-content">
+        <div class="card">
+            <div class="card-header">📈 Açık İşlemler</div>
+            <div id="open-trades-list"></div>
+        </div>
+        <div class="card">
+            <div class="card-header">📋 İşlem Geçmişi</div>
+            <div id="trade-history-list"></div>
+        </div>
+    </section>
+
+    <!-- ═══ ANALİZ ═══ -->
+    <section id="tab-analysis" class="tab-content">
+        <div class="card">
+            <div class="card-header">
+                <span>🔬 Detaylı Analiz</span>
+                <select id="analysis-pair" class="select-sm" onchange="analyzeSelected()"></select>
+            </div>
+            <div id="analysis-chart" style="height: 350px;"></div>
+            <div id="analysis-details"></div>
+        </div>
+    </section>
+
+    <!-- ═══ ÖĞRENME ═══ -->
+    <section id="tab-learning" class="tab-content">
+        <div class="card">
+            <div class="card-header">🧠 Öğrenme Performansı</div>
+            <div id="learning-summary"></div>
+        </div>
+        <div class="card">
+            <div class="card-header">📊 Konsept Skorları</div>
+            <div id="pattern-scores"></div>
+        </div>
+    </section>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
