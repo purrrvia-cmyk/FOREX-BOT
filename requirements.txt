@@ -1,0 +1,7 @@
+flask>=3.0.0
+flask-socketio>=5.3.0
+yfinance>=0.2.31
+feedparser>=6.0.10
+requests>=2.31.0
+pandas>=2.0.0
+numpy>=1.24.0

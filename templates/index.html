@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FOREX ICT Bot — Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0d1117;
+            --bg-card: #161b22;
+            --bg-card2: #1c2333;
+            --border: #30363d;
+            --text: #e6edf3;
+            --text-dim: #8b949e;
+            --green: #2ea043;
+            --red: #f85149;
+            --blue: #58a6ff;
+            --yellow: #d29922;
+            --purple: #bc8cff;
+        }
+        body { background: var(--bg-dark); color: var(--text); font-family: 'Segoe UI', sans-serif; }
+        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; }
+        .card-header { background: var(--bg-card2); border-bottom: 1px solid var(--border); font-weight: 600; }
+        .badge-long { background: var(--green); }
+        .badge-short { background: var(--red); }
+        .badge-wait { background: var(--text-dim); }
+        .badge-high { background: var(--red); }
+        .badge-medium { background: var(--yellow); }
+        .badge-low { background: var(--green); }
+        .price-up { color: var(--green); }
+        .price-down { color: var(--red); }
+        .kz-active { color: var(--green); font-weight: bold; }
+        .kz-inactive { color: var(--text-dim); }
+        .signal-card { transition: all 0.3s; cursor: pointer; }
+        .signal-card:hover { border-color: var(--blue); transform: translateY(-2px); }
+        .signal-strong-long { border-left: 4px solid var(--green); }
+        .signal-long { border-left: 4px solid #3fb950; }
+        .signal-strong-short { border-left: 4px solid var(--red); }
+        .signal-short { border-left: 4px solid #da3633; }
+        .signal-wait { border-left: 4px solid var(--text-dim); }
+        .nav-pills .nav-link { color: var(--text-dim); }
+        .nav-pills .nav-link.active { background: var(--blue); color: #fff; }
+        .stat-value { font-size: 1.8rem; font-weight: 700; }
+        .commentary-box { background: var(--bg-card2); border-radius: 8px; padding: 15px;
+                          font-family: 'Courier New', monospace; font-size: 0.85rem;
+                          white-space: pre-wrap; max-height: 400px; overflow-y: auto; }
+        #scanner-status { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+        .scanner-on { background: var(--green); box-shadow: 0 0 8px var(--green); }
+        .scanner-off { background: var(--red); }
+        .news-item { padding: 8px 0; border-bottom: 1px solid var(--border); }
+        .table { color: var(--text); }
+        .table th { border-color: var(--border); color: var(--text-dim); font-weight: 500; }
+        .table td { border-color: var(--border); }
+        .btn-scan { background: linear-gradient(135deg, var(--blue), var(--purple)); border: none; }
+        .btn-scan:hover { opacity: 0.9; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .scanning { animation: pulse 1.5s infinite; }
+    </style>
+</head>
+<body>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-dark" style="background: var(--bg-card);">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">
+                <i class="bi bi-currency-exchange"></i> FOREX ICT Bot
+                <small class="text-muted ms-2" style="font-size:0.7rem;">%100 ICT Uyumlu</small>
+            </span>
+            <div class="d-flex align-items-center gap-3">
+                <span id="scanner-status" class="scanner-off" title="Scanner durumu"></span>
+                <button class="btn btn-sm btn-outline-light" id="btn-toggle-scanner">
+                    <i class="bi bi-play-circle"></i> Scanner
+                </button>
+                <button class="btn btn-sm btn-scan text-white" id="btn-manual-scan">
+                    <i class="bi bi-search"></i> Tara
+                </button>
+                <small class="text-muted" id="last-update">—</small>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-3">
+        <!-- TAB NAV -->
+        <ul class="nav nav-pills mb-3" id="mainTabs">
+            <li class="nav-item"><a class="nav-link active" data-bs-toggle="pill" href="#tab-overview">Genel Bakış</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tab-signals">Sinyaller</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tab-trades">Trade'ler</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tab-news">Haberler</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tab-analysis">Detaylı Analiz</a></li>
+        </ul>
+
+        <div class="tab-content">
+            <!-- ═══ GENEL BAKIŞ ═══ -->
+            <div class="tab-pane fade show active" id="tab-overview">
+                <!-- İstatistik Kartları -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-2">
+                        <div class="card p-3 text-center">
+                            <div class="text-muted small">Açık Pozisyon</div>
+                            <div class="stat-value" id="stat-open">0</div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card p-3 text-center">
+                            <div class="text-muted small">Toplam Trade</div>
+                            <div class="stat-value" id="stat-total">0</div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card p-3 text-center">
+                            <div class="text-muted small">Win Rate</div>
+                            <div class="stat-value" id="stat-wr">—</div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card p-3 text-center">
+                            <div class="text-muted small">Toplam PnL (pip)</div>
+                            <div class="stat-value" id="stat-pnl">0</div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card p-3 text-center">
+                            <div class="text-muted small">Kill Zone</div>
+                            <div class="stat-value" style="font-size:1rem;" id="stat-kz">—</div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card p-3 text-center">
+                            <div class="text-muted small">Silver Bullet</div>
+                            <div class="stat-value" style="font-size:1rem;" id="stat-sb">—</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fiyatlar + Sinyal Kartları -->
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header"><i class="bi bi-graph-up"></i> Pariteler & Son Sinyaller</div>
+                            <div class="card-body p-2">
+                                <div class="row g-2" id="signal-cards"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <!-- Açık Pozisyonlar -->
+                        <div class="card mb-3">
+                            <div class="card-header"><i class="bi bi-briefcase"></i> Açık Pozisyonlar</div>
+                            <div class="card-body p-2" id="open-positions">
+                                <div class="text-muted text-center py-3">Açık pozisyon yok</div>
+                            </div>
+                        </div>
+                        <!-- Son Haberler -->
+                        <div class="card">
+                            <div class="card-header"><i class="bi bi-newspaper"></i> Son Haberler</div>
+                            <div class="card-body p-2" style="max-height:300px; overflow-y:auto;" id="news-feed">
+                                <div class="text-muted text-center py-3">Yükleniyor...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══ SİNYALLER ═══ -->
+            <div class="tab-pane fade" id="tab-signals">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-bell"></i> Sinyal Geçmişi</span>
+                        <select class="form-select form-select-sm" style="width:150px; background:var(--bg-dark); color:var(--text); border-color:var(--border);"
+                                id="signal-filter">
+                            <option value="ALL">Tümü</option>
+                            <option value="STRONG_LONG">Strong Long</option>
+                            <option value="LONG">Long</option>
+                            <option value="STRONG_SHORT">Strong Short</option>
+                            <option value="SHORT">Short</option>
+                        </select>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-sm mb-0">
+                            <thead><tr>
+                                <th>Tarih</th><th>Parite</th><th>Sinyal</th>
+                                <th>Skor</th><th>Confluence</th><th>Fiyat</th>
+                                <th>SL</th><th>TP1</th><th>Bias</th>
+                            </tr></thead>
+                            <tbody id="signal-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══ TRADE'LER ═══ -->
+            <div class="tab-pane fade" id="tab-trades">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-3">
+                        <div class="card p-3 text-center">
+                            <div class="text-muted small">30 Gün Win Rate</div>
+                            <div class="stat-value" id="trade-wr">—</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card p-3 text-center">
+                            <div class="text-muted small">30 Gün PnL</div>
+                            <div class="stat-value" id="trade-pnl">—</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card p-3 text-center">
+                            <div class="text-muted small">En İyi Trade</div>
+                            <div class="stat-value price-up" id="trade-best">—</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card p-3 text-center">
+                            <div class="text-muted small">En Kötü Trade</div>
+                            <div class="stat-value price-down" id="trade-worst">—</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><i class="bi bi-list-check"></i> Trade Geçmişi</div>
+                    <div class="card-body p-0">
+                        <table class="table table-sm mb-0">
+                            <thead><tr>
+                                <th>ID</th><th>Parite</th><th>Yön</th><th>Giriş</th>
+                                <th>SL</th><th>TP1</th><th>Durum</th><th>PnL (pip)</th>
+                                <th>Kapanış</th><th>İşlem</th>
+                            </tr></thead>
+                            <tbody id="trade-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══ HABERLER ═══ -->
+            <div class="tab-pane fade" id="tab-news">
+                <div class="row g-3">
+                    <div class="col-md-7">
+                        <div class="card">
+                            <div class="card-header"><i class="bi bi-rss"></i> Piyasa Haberleri</div>
+                            <div class="card-body" id="news-full-feed" style="max-height:600px; overflow-y:auto;">
+                                <div class="text-muted text-center py-3">Yükleniyor...</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="card mb-3">
+                            <div class="card-header"><i class="bi bi-calendar-event"></i> Önemli Olaylar</div>
+                            <div class="card-body" id="events-list" style="max-height:300px; overflow-y:auto;">
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header"><i class="bi bi-bar-chart"></i> Parite Sentiment</div>
+                            <div class="card-body" id="sentiment-list"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══ DETAYLI ANALİZ ═══ -->
+            <div class="tab-pane fade" id="tab-analysis">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="card">
+                            <div class="card-header">Parite Seç</div>
+                            <div class="card-body p-2">
+                                <div class="list-group" id="pair-list"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between">
+                                <span><i class="bi bi-zoom-in"></i> <span id="analysis-pair-name">Parite seçin...</span></span>
+                                <button class="btn btn-sm btn-scan text-white" id="btn-analyze" disabled>
+                                    <i class="bi bi-lightning"></i> Analiz Et
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="commentary-box" id="analysis-commentary">
+                                    Detaylı analiz görmek için sol taraftan bir parite seçin ve "Analiz Et" butonuna tıklayın.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4/dist/socket.io.min.js"></script>
+    <script>
+        // ═══ STATE ═══
+        const instruments = {{ instruments | tojson }};
+        let selectedPair = null;
+        let scannerRunning = false;
+
+        // ═══ SOCKET.IO ═══
+        const socket = io();
+        socket.on('connect', () => console.log('WS connected'));
+        socket.on('status', d => {
+            scannerRunning = d.scanner_running;
+            updateScannerUI();
+        });
+        socket.on('scan_update', d => {
+            renderSignalCards(d.results);
+            document.getElementById('last-update').textContent = new Date().toLocaleTimeString('tr-TR');
+        });
+        socket.on('trade_update', d => {
+            loadPortfolio();
+        });
+
+        // ═══ INIT ═══
+        document.addEventListener('DOMContentLoaded', () => {
+            renderPairList();
+            loadDashboard();
+            loadNews();
+            loadTrades();
+            loadSignals();
+
+            document.getElementById('btn-manual-scan').addEventListener('click', manualScan);
+            document.getElementById('btn-toggle-scanner').addEventListener('click', toggleScanner);
+            document.getElementById('btn-analyze').addEventListener('click', analyzePair);
+            document.getElementById('signal-filter').addEventListener('change', loadSignals);
+        });
+
+        // ═══ API CALLS ═══
+        async function api(url, opts = {}) {
+            try {
+                const r = await fetch(url, opts);
+                return await r.json();
+            } catch (e) {
+                console.error('API error:', e);
+                return { ok: false, error: e.message };
+            }
+        }
+
+        async function loadDashboard() {
+            const d = await api('/api/dashboard');
+            if (!d.ok) return;
+
+            const data = d.data;
+            // Stats
+            document.getElementById('stat-open').textContent = data.portfolio?.open_count || 0;
+            document.getElementById('stat-total').textContent = data.trade_stats?.total || 0;
+            const wr = data.trade_stats?.win_rate;
+            document.getElementById('stat-wr').textContent = wr ? wr + '%' : '—';
+            const pnl = data.trade_stats?.total_pnl || 0;
+            const pnlEl = document.getElementById('stat-pnl');
+            pnlEl.textContent = pnl > 0 ? '+' + pnl : pnl;
+            pnlEl.className = 'stat-value ' + (pnl >= 0 ? 'price-up' : 'price-down');
+
+            // Kill Zone
+            const kz = data.kill_zone;
+            const kzEl = document.getElementById('stat-kz');
+            if (kz?.is_kill_zone) {
+                kzEl.innerHTML = '<span class="kz-active">' + kz.active_zone + '</span>';
+            } else {
+                kzEl.innerHTML = '<span class="kz-inactive">' + (kz?.next_kz || 'Bekleniyor') + '</span>';
+            }
+
+            // Silver Bullet
+            const sb = data.silver_bullet;
+            const sbEl = document.getElementById('stat-sb');
+            if (sb?.is_active) {
+                sbEl.innerHTML = '<span class="kz-active">' + sb.active.name + '</span>';
+            } else {
+                sbEl.innerHTML = '<span class="kz-inactive">İnaktif</span>';
+            }
+
+            // Signal cards (from prices)
+            if (data.prices) renderPriceCards(data.prices, data.recent_signals);
+
+            // Portfolio
+            renderPortfolio(data.portfolio);
+
+            document.getElementById('last-update').textContent = new Date().toLocaleTimeString('tr-TR');
+        }
+
+        function renderPriceCards(prices, signals) {
+            const container = document.getElementById('signal-cards');
+            let html = '';
+            for (const [key, inst] of Object.entries(instruments)) {
+                const p = prices[key];
+                const sig = signals?.find(s => s.instrument === key);
+                const signal = sig?.signal || 'WAIT';
+                const signalClass = signal.toLowerCase().replace('_', '-');
+                const price = p?.last ? p.last.toFixed(5) : '—';
+
+                html += `
+                <div class="col-6 col-md-3">
+                    <div class="card signal-card signal-${signalClass} p-2" onclick="selectPair('${key}')">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong>${inst.name}</strong>
+                            <span class="badge ${signal.includes('LONG') ? 'badge-long' : signal.includes('SHORT') ? 'badge-short' : 'badge-wait'}">${signal}</span>
+                        </div>
+                        <div class="mt-1" style="font-size:1.1rem;">${price}</div>
+                        ${sig?.net_score ? '<small class="text-muted">Skor: ' + sig.net_score + '</small>' : ''}
+                    </div>
+                </div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function renderSignalCards(results) {
+            const container = document.getElementById('signal-cards');
+            let html = '';
+            for (const r of results) {
+                const inst = instruments[r.instrument];
+                if (!inst) continue;
+                const signal = r.signal || 'WAIT';
+                const signalClass = signal.toLowerCase().replace('_', '-');
+                const price = r.price ? r.price.toFixed(5) : '—';
+
+                html += `
+                <div class="col-6 col-md-3">
+                    <div class="card signal-card signal-${signalClass} p-2" onclick="selectPair('${r.instrument}')">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong>${inst.name}</strong>
+                            <span class="badge ${signal.includes('LONG') ? 'badge-long' : signal.includes('SHORT') ? 'badge-short' : 'badge-wait'}">${signal}</span>
+                        </div>
+                        <div class="mt-1" style="font-size:1.1rem;">${price}</div>
+                        <small class="text-muted">Skor: ${r.net_score || 0} | Conf: ${Math.max(r.conf_bull||0, r.conf_bear||0)}</small>
+                    </div>
+                </div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function renderPortfolio(portfolio) {
+            const container = document.getElementById('open-positions');
+            if (!portfolio?.positions?.length) {
+                container.innerHTML = '<div class="text-muted text-center py-3">Açık pozisyon yok</div>';
+                return;
+            }
+            let html = '';
+            for (const p of portfolio.positions) {
+                const pnlClass = p.pnl_pips >= 0 ? 'price-up' : 'price-down';
+                html += `
+                <div class="d-flex justify-content-between align-items-center p-2 border-bottom" style="border-color:var(--border)!important;">
+                    <div>
+                        <strong>${p.instrument}</strong>
+                        <span class="badge ${p.direction === 'LONG' ? 'badge-long' : 'badge-short'} ms-1">${p.direction}</span>
+                        ${p.be_triggered ? '<i class="bi bi-lock-fill text-warning ms-1" title="BE"></i>' : ''}
+                        ${p.trailing_active ? '<i class="bi bi-arrow-up-right text-info ms-1" title="Trailing"></i>' : ''}
+                    </div>
+                    <span class="${pnlClass}">${p.pnl_pips > 0 ? '+' : ''}${p.pnl_pips} pip</span>
+                </div>`;
+            }
+            html += `<div class="text-end p-2 small">Toplam: <strong class="${portfolio.total_unrealized_pnl >= 0 ? 'price-up' : 'price-down'}">${portfolio.total_unrealized_pnl > 0 ? '+' : ''}${portfolio.total_unrealized_pnl} pip</strong></div>`;
+            container.innerHTML = html;
+        }
+
+        async function loadPortfolio() {
+            const d = await api('/api/portfolio');
+            if (d.ok) renderPortfolio(d.portfolio);
+        }
+
+        async function manualScan() {
+            const btn = document.getElementById('btn-manual-scan');
+            btn.disabled = true;
+            btn.classList.add('scanning');
+            btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Taranıyor...';
+
+            const d = await api('/api/scan', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: '{"timeframe":"1h"}' });
+            if (d.ok) renderSignalCards(d.results);
+
+            btn.disabled = false;
+            btn.classList.remove('scanning');
+            btn.innerHTML = '<i class="bi bi-search"></i> Tara';
+            document.getElementById('last-update').textContent = new Date().toLocaleTimeString('tr-TR');
+            loadDashboard();
+        }
+
+        async function toggleScanner() {
+            const d = await api('/api/scanner/toggle', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: '{"action":"toggle"}' });
+            if (d.ok) {
+                scannerRunning = d.running;
+                updateScannerUI();
+            }
+        }
+
+        function updateScannerUI() {
+            const dot = document.getElementById('scanner-status');
+            const btn = document.getElementById('btn-toggle-scanner');
+            if (scannerRunning) {
+                dot.className = 'scanner-on';
+                btn.innerHTML = '<i class="bi bi-pause-circle"></i> Durdur';
+            } else {
+                dot.className = 'scanner-off';
+                btn.innerHTML = '<i class="bi bi-play-circle"></i> Scanner';
+            }
+        }
+
+        // ═══ SIGNALS TAB ═══
+        async function loadSignals() {
+            const filter = document.getElementById('signal-filter').value;
+            const d = await api('/api/signals?signal=' + filter);
+            if (!d.ok) return;
+
+            const tbody = document.getElementById('signal-table');
+            let html = '';
+            for (const s of d.signals) {
+                const badgeClass = s.signal?.includes('LONG') ? 'badge-long' : s.signal?.includes('SHORT') ? 'badge-short' : 'badge-wait';
+                html += `<tr>
+                    <td>${s.created_at || ''}</td>
+                    <td>${s.instrument}</td>
+                    <td><span class="badge ${badgeClass}">${s.signal}</span></td>
+                    <td>${s.net_score || 0}</td>
+                    <td>${Math.max(s.conf_bull||0, s.conf_bear||0)}</td>
+                    <td>${s.price?.toFixed(5) || ''}</td>
+                    <td>${s.sl?.toFixed(5) || '—'}</td>
+                    <td>${s.tp1?.toFixed(5) || '—'}</td>
+                    <td>${s.daily_bias || ''}</td>
+                </tr>`;
+            }
+            tbody.innerHTML = html || '<tr><td colspan="9" class="text-center text-muted">Sinyal yok</td></tr>';
+        }
+
+        // ═══ TRADES TAB ═══
+        async function loadTrades() {
+            const d = await api('/api/trades');
+            if (!d.ok) return;
+
+            // Stats
+            const s = d.stats;
+            document.getElementById('trade-wr').textContent = s.win_rate ? s.win_rate + '%' : '—';
+            const pnl = s.total_pnl || 0;
+            const pnlEl = document.getElementById('trade-pnl');
+            pnlEl.textContent = (pnl > 0 ? '+' : '') + pnl;
+            pnlEl.className = 'stat-value ' + (pnl >= 0 ? 'price-up' : 'price-down');
+            document.getElementById('trade-best').textContent = s.best ? '+' + s.best : '—';
+            document.getElementById('trade-worst').textContent = s.worst || '—';
+
+            // Table
+            const tbody = document.getElementById('trade-table');
+            let html = '';
+            for (const t of d.trades) {
+                const pnlClass = t.pnl_pips > 0 ? 'price-up' : t.pnl_pips < 0 ? 'price-down' : '';
+                const statusBadge = t.status === 'OPEN' ? 'bg-primary' : (t.pnl_pips > 0 ? 'bg-success' : 'bg-danger');
+                html += `<tr>
+                    <td>#${t.id}</td>
+                    <td>${t.instrument}</td>
+                    <td><span class="badge ${t.direction === 'LONG' ? 'badge-long' : 'badge-short'}">${t.direction}</span></td>
+                    <td>${t.entry_price?.toFixed(5)}</td>
+                    <td>${t.sl?.toFixed(5)}</td>
+                    <td>${t.tp1?.toFixed(5)}</td>
+                    <td><span class="badge ${statusBadge}">${t.status}${t.close_reason ? ' ('+t.close_reason+')' : ''}</span></td>
+                    <td class="${pnlClass}">${t.pnl_pips ? (t.pnl_pips > 0 ? '+' : '') + t.pnl_pips : '—'}</td>
+                    <td>${t.closed_at || '—'}</td>
+                    <td>${t.status === 'OPEN' ? '<button class="btn btn-sm btn-outline-danger" onclick="closeTrade('+t.id+')">Kapat</button>' : ''}</td>
+                </tr>`;
+            }
+            tbody.innerHTML = html || '<tr><td colspan="10" class="text-center text-muted">Trade yok</td></tr>';
+        }
+
+        async function closeTrade(id) {
+            if (!confirm('Trade #' + id + ' kapatılsın mı?')) return;
+            await api('/api/trades/close/' + id, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: '{"reason":"MANUAL"}' });
+            loadTrades();
+            loadDashboard();
+        }
+
+        // ═══ NEWS TAB ═══
+        async function loadNews() {
+            const d = await api('/api/news');
+            if (!d.ok) return;
+
+            // Sidebar news feed
+            const sidebarFeed = document.getElementById('news-feed');
+            const fullFeed = document.getElementById('news-full-feed');
+            const eventsList = document.getElementById('events-list');
+
+            let sideHtml = '';
+            let fullHtml = '';
+            const news = d.data?.news || [];
+            for (const n of news.slice(0, 8)) {
+                const icon = n.impact === 'HIGH' ? '🔴' : n.impact === 'MEDIUM' ? '🟡' : '🟢';
+                sideHtml += `<div class="news-item small">${icon} <strong>${n.currency || ''}</strong> ${n.title?.substring(0, 50) || ''}</div>`;
+            }
+            for (const n of news) {
+                const icon = n.impact === 'HIGH' ? '🔴' : n.impact === 'MEDIUM' ? '🟡' : '🟢';
+                const sentIcon = n.sentiment === 'BULLISH' ? '📈' : n.sentiment === 'BEARISH' ? '📉' : '➖';
+                fullHtml += `<div class="news-item">
+                    <div class="d-flex justify-content-between">
+                        <span>${icon} <strong>${n.currency || 'GENEL'}</strong></span>
+                        <small class="text-muted">${n.source || ''}</small>
+                    </div>
+                    <div>${n.title || ''} ${sentIcon}</div>
+                    <small class="text-muted">${n.summary?.substring(0, 150) || ''}</small>
+                </div>`;
+            }
+            sidebarFeed.innerHTML = sideHtml || '<div class="text-muted text-center py-2">Haber yok</div>';
+            fullFeed.innerHTML = fullHtml || '<div class="text-muted text-center py-3">Haber yok</div>';
+
+            // Events
+            let evHtml = '';
+            for (const ev of (d.events || [])) {
+                const impClass = ev.impact === 'HIGH' ? 'badge-high' : ev.impact === 'MEDIUM' ? 'badge-medium' : 'badge-low';
+                evHtml += `<div class="news-item small">
+                    <span class="badge ${impClass}">${ev.impact}</span>
+                    <strong>${ev.currency}</strong> — ${ev.name}
+                    <br><small class="text-muted">${ev.schedule || ''}</small>
+                </div>`;
+            }
+            eventsList.innerHTML = evHtml || '<div class="text-muted">Olay yok</div>';
+        }
+
+        // ═══ ANALYSIS TAB ═══
+        function renderPairList() {
+            const container = document.getElementById('pair-list');
+            let html = '';
+            for (const [key, inst] of Object.entries(instruments)) {
+                html += `<a href="#" class="list-group-item list-group-item-action" style="background:var(--bg-card2); color:var(--text); border-color:var(--border);"
+                    onclick="selectPair('${key}'); return false;">${inst.name}</a>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function selectPair(key) {
+            selectedPair = key;
+            document.getElementById('analysis-pair-name').textContent = instruments[key]?.name || key;
+            document.getElementById('btn-analyze').disabled = false;
+
+            // Analiz tab'a geç
+            const tab = document.querySelector('[href="#tab-analysis"]');
+            if (tab) new bootstrap.Tab(tab).show();
+        }
+
+        async function analyzePair() {
+            if (!selectedPair) return;
+            const btn = document.getElementById('btn-analyze');
+            const box = document.getElementById('analysis-commentary');
+            btn.disabled = true;
+            box.textContent = 'Analiz ediliyor...';
+
+            const d = await api('/api/analyze/' + selectedPair);
+            btn.disabled = false;
+
+            if (d.ok && d.data?.commentary) {
+                box.textContent = d.data.commentary;
+            } else {
+                box.textContent = 'Analiz hatası: ' + (d.error || 'Bilinmiyor');
+            }
+        }
+
+        // Auto-refresh
+        setInterval(() => { if (scannerRunning) loadDashboard(); }, 60000);
+    </script>
+</body>
+</html>
