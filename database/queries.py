@@ -311,14 +311,16 @@ class Queries:
         finally:
             conn.close()
 
-    def get_daily_performance(self, days: int = 30) -> List[Dict]:
+    def get_daily_performance(self, days: int = 30, limit: int = 0) -> List[Dict]:
         conn = get_db()
         try:
             cutoff = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
-            rows = conn.execute(
-                "SELECT * FROM daily_performance WHERE date>=? ORDER BY date DESC",
-                (cutoff,),
-            ).fetchall()
+            q = "SELECT * FROM daily_performance WHERE date>=? ORDER BY date DESC"
+            params = [cutoff]
+            if limit > 0:
+                q += " LIMIT ?"
+                params.append(limit)
+            rows = conn.execute(q, params).fetchall()
             return [dict(r) for r in rows]
         finally:
             conn.close()
@@ -327,14 +329,19 @@ class Queries:
     def save_news(self, item: Dict):
         conn = get_db()
         try:
+            import hashlib
+            news_id = item.get("id") or hashlib.md5(item.get("title", "").encode()).hexdigest()[:16]
+            currencies = item.get("currencies", [])
+            currency_str = ",".join(currencies) if isinstance(currencies, list) else str(currencies)
             conn.execute("""
                 INSERT OR REPLACE INTO news
                 (id,title,summary,source,url,published,currency,impact,sentiment,sentiment_score,fetched_at)
                 VALUES (?,?,?,?,?,?,?,?,?,?,?)
             """, (
-                item["id"], item["title"], item.get("summary", ""),
-                item["source"], item.get("url", ""), item.get("published", ""),
-                item.get("currency", ""), item.get("impact", "LOW"),
+                news_id, item.get("title", ""), item.get("summary", ""),
+                item.get("source", ""), item.get("link", item.get("url", "")),
+                item.get("published", ""),
+                currency_str, item.get("impact", "LOW"),
                 item.get("sentiment", "NEUTRAL"), item.get("sentiment_score", 0),
                 datetime.now().isoformat(),
             ))

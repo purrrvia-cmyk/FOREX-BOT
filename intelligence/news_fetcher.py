@@ -24,19 +24,20 @@ class NewsFetcher:
     def __init__(self):
         self._cache = {}
         self._last_fetch = None
-        self._interval = NEWS_CFG["fetch_interval_min"]
+        self._interval = NEWS_CFG.get("check_interval_sec", 300)
 
     def fetch(self):
         """Tüm kaynakları çek"""
         now = datetime.now()
-        if self._last_fetch and (now - self._last_fetch).seconds < self._interval * 60:
+        if self._last_fetch and (now - self._last_fetch).seconds < self._interval:
             return
 
         all_news = []
-        for source in NEWS_CFG["sources"]:
+        rss_feeds = NEWS_CFG.get("rss_feeds", {})
+        for name, url in rss_feeds.items():
             try:
-                f = feedparser.parse(source["url"])
-                for entry in f.entries[:source.get("max_items", 10)]:
+                f = feedparser.parse(url)
+                for entry in f.entries[:10]:
                     title = entry.get("title", "").strip()
                     summary = entry.get("summary", "")[:200]
                     link = entry.get("link", "")
@@ -45,19 +46,18 @@ class NewsFetcher:
                     if not title:
                         continue
 
-                    # 24 saat önceki haberler
                     text = f"{title} {summary}".upper()
                     sentiment = self._analyze(text)
 
                     all_news.append({
                         "title": title, "summary": summary,
-                        "source": source["name"], "link": link,
+                        "source": name, "link": link,
                         "published": pub, "sentiment": sentiment["direction"],
                         "impact": sentiment["impact"],
                         "currencies": sentiment["currencies"],
                     })
             except Exception as e:
-                logger.error(f"Haber hatası ({source['name']}): {e}")
+                logger.error(f"Haber hatası ({name}): {e}")
 
         # DB kaydet
         for n in all_news:

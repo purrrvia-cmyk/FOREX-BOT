@@ -33,7 +33,7 @@ class RiskManager:
     def check_daily_loss(self) -> dict:
         daily = db.get_daily_performance(limit=1)
         if daily:
-            pnl = daily[0].get("pnl_usd", 0)
+            pnl = daily[0].get("total_pnl_usd", 0)
             max_loss = 50 * (CAPITAL["max_daily_loss_pct"] / 100)  # TODO: dinamik bakiye
             if pnl < 0 and abs(pnl) >= max_loss:
                 return {"allowed": False, "reason": f"Günlük kayıp limiti: ${abs(pnl):.2f}"}
@@ -42,7 +42,7 @@ class RiskManager:
     def check_weekly_loss(self) -> dict:
         daily = db.get_daily_performance(limit=5)
         if daily:
-            total = sum(d.get("pnl_usd", 0) for d in daily)
+            total = sum(d.get("total_pnl_usd", 0) for d in daily)
             if total < -5.0:  # $5 haftalık limit (%10)
                 return {"allowed": False, "reason": f"Haftalık kayıp: ${abs(total):.2f}"}
         return {"allowed": True}

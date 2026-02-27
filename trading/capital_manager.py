@@ -67,7 +67,7 @@ class CapitalManager:
         """Günlük kaybı kontrol et"""
         daily = db.get_daily_performance(limit=1)
         if daily:
-            today_pnl = daily[0].get("pnl_usd", 0)
+            today_pnl = daily[0].get("total_pnl_usd", 0)
             max_loss = self.balance * (CAPITAL["max_daily_loss_pct"] / 100)
             if today_pnl < 0 and abs(today_pnl) >= max_loss:
                 return {"allowed": False, "reason": f"Günlük kayıp limiti (${abs(today_pnl):.2f}/${max_loss:.2f})"}
@@ -76,8 +76,9 @@ class CapitalManager:
     def check_max_open(self) -> dict:
         """Açık işlem limiti"""
         open_trades = db.get_open_trades()
-        if len(open_trades) >= CAPITAL["max_open_trades"]:
-            return {"allowed": False, "reason": f"Maks açık işlem ({CAPITAL['max_open_trades']})"}
+        max_open = CAPITAL.get("max_concurrent_trades", 3)
+        if len(open_trades) >= max_open:
+            return {"allowed": False, "reason": f"Maks açık işlem ({max_open})"}
         return {"allowed": True}
 
     def on_trade_close(self, pnl_usd: float):

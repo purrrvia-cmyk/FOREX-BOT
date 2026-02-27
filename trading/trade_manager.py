@@ -59,7 +59,7 @@ class TradeManager:
             "direction": direction,
             "entry_price": entry,
             "sl": sl,
-            "tp": tp1,
+            "tp1": tp1,
             "tp2": tp2,
             "lot_size": lot_info["lot"],
             "risk_usd": lot_info["risk_usd"],
@@ -68,7 +68,7 @@ class TradeManager:
             "concepts_used": concepts,
         }
 
-        db.open_trade(trade_data)
+        db.open_trade(**trade_data)
         logger.info(f"✅ TRADE AÇILDI: {key} {direction} @ {entry} | "
                      f"SL: {sl} TP1: {tp1} TP2: {tp2} | "
                      f"Lot: {lot_info['lot']} Risk: ${lot_info['risk_usd']}")
@@ -91,7 +91,7 @@ class TradeManager:
             direction = trade["direction"]
             entry = trade["entry_price"]
             sl = trade["sl"]
-            tp = trade["tp"]
+            tp = trade["tp1"]
             tp2 = trade.get("tp2", tp)
 
             hit_sl, hit_tp, hit_tp2 = False, False, False
@@ -138,8 +138,9 @@ class TradeManager:
             pips = (entry - close_price) / pip
 
         pnl_usd = round(pips * pip_val * lot, 2)
+        pnl_pct = round(pnl_usd / self.capital.balance * 100, 2) if self.capital.balance > 0 else 0
 
-        db.close_trade(trade["id"], close_price, pnl_usd, reason)
+        db.close_trade(trade["id"], close_price, reason, pips, pnl_usd, pnl_pct)
         self.capital.on_trade_close(pnl_usd)
 
         emoji = "🟢" if pnl_usd >= 0 else "🔴"
@@ -152,7 +153,7 @@ class TradeManager:
 
         # BE'ye çek
         new_sl = entry  # Entry fiyatını SL yap (breakeven)
-        db.update_trade(trade["id"], {"sl": new_sl, "status": "BE_TRAILING"})
+        db.update_trade(trade["id"], sl=new_sl, status="BE_TRAILING")
         logger.info(f"🔄 {trade['instrument']} BE'ye çekildi (TP1 hit)")
 
     def _update_trailing(self, trade, cur_price: float):
@@ -160,7 +161,7 @@ class TradeManager:
         direction = trade["direction"]
         entry = trade["entry_price"]
         current_sl = trade["sl"]
-        tp = trade["tp"]
+        tp = trade["tp1"]
 
         risk = abs(entry - current_sl)
         if risk == 0:
@@ -171,13 +172,13 @@ class TradeManager:
             if profit_pips > risk * 1.5:
                 new_sl = max(current_sl, entry + risk * 0.5)
                 if new_sl > current_sl:
-                    db.update_trade(trade["id"], {"sl": round(new_sl, 5)})
+                    db.update_trade(trade["id"], sl=round(new_sl, 5))
         else:
             profit_pips = entry - cur_price
             if profit_pips > risk * 1.5:
                 new_sl = min(current_sl, entry - risk * 0.5)
                 if new_sl < current_sl:
-                    db.update_trade(trade["id"], {"sl": round(new_sl, 5)})
+                    db.update_trade(trade["id"], sl=round(new_sl, 5))
 
     def summary(self) -> dict:
         """Açık işlem özeti"""

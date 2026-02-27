@@ -1,0 +1,68 @@
+04:44:01 [BOT] INFO: ==================================================
+04:44:01 [BOT] INFO:   FOREX-BOT v2.0 — ICT/SMC Trading System
+04:44:01 [BOT] INFO: ==================================================
+04:44:01 [BOT.DB] INFO: Veritabanı tabloları hazır
+04:44:01 [BOT] INFO: 💰 Bakiye: $50.00 | Kaldıraç: 100x
+04:44:01 [BOT] INFO: 📊 9 enstrüman aktif
+04:44:01 [BOT.DB] INFO: Veritabanı tabloları hazır
+04:44:01 [BOT] INFO: ─── Döngü #1 ───
+04:44:01 [BOT] INFO: 🌐 Web arayüzü: http://localhost:5000
+04:44:01 [werkzeug] INFO: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.12:5000
+04:44:01 [werkzeug] INFO: [33mPress CTRL+C to quit[0m
+04:44:04 [BOT.NEWS] INFO: 📰 20 haber güncellendi
+04:44:04 [BOT.CALENDAR] INFO: 📅 19 ekonomik olay yüklendi
+04:44:18 [BOT.SIGNAL] INFO: XAUUSD: 1D ters yön → sinyal iptal
+04:44:19 [BOT] ERROR: Döngü hatası: 'max_open_trades'
+Traceback (most recent call last):
+  File "C:\Users\Yusuf\Desktop\FOREX-BOT\main.py", line 119, in scan_loop
+    trade = trades.open_trade(entry_data)
+  File "C:\Users\Yusuf\Desktop\FOREX-BOT\trading\trade_manager.py", line 31, in open_trade
+    max_open = self.capital.check_max_open()
+  File "C:\Users\Yusuf\Desktop\FOREX-BOT\trading\capital_manager.py", line 79, in check_max_open
+    if len(open_trades) >= CAPITAL["max_open_trades"]:
+                           ~~~~~~~^^^^^^^^^^^^^^^^^^^
+KeyError: 'max_open_trades'
+04:44:49 [BOT] INFO: ─── Döngü #2 ───
+04:46:28 [BOT] INFO: ==================================================
+04:46:28 [BOT] INFO:   FOREX-BOT v2.0 — ICT/SMC Trading System
+04:46:28 [BOT] INFO: ==================================================
+04:46:28 [BOT.DB] INFO: Veritabanı tabloları hazır
+04:46:28 [BOT] INFO: 💰 Bakiye: $50.00 | Kaldıraç: 1:2
+04:46:28 [BOT] INFO: 📊 9 enstrüman aktif
+04:46:28 [BOT.DB] INFO: Veritabanı tabloları hazır
+04:46:28 [BOT] INFO: ─── Döngü #1 ───
+04:46:28 [BOT] INFO: 🌐 Web arayüzü: http://localhost:5000
+04:46:28 [werkzeug] INFO: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.12:5000
+04:46:28 [werkzeug] INFO: [33mPress CTRL+C to quit[0m
+04:46:28 [werkzeug] INFO: 127.0.0.1 - - [27/Feb/2026 04:46:28] "GET /socket.io/?EIO=4&transport=polling&t=PoSnfiw HTTP/1.1" 200 -
+04:46:28 [BOT.WS] INFO: 🔌 WebSocket bağlandı
+04:46:28 [werkzeug] INFO: 127.0.0.1 - - [27/Feb/2026 04:46:28] "POST /socket.io/?EIO=4&transport=polling&t=PoSnfvg&sid=GL2OPOi1XLmwH1OZAAAA HTTP/1.1" 200 -
+04:46:28 [werkzeug] INFO: 127.0.0.1 - - [27/Feb/2026 04:46:28] "GET /socket.io/?EIO=4&transport=polling&t=PoSnfvi&sid=GL2OPOi1XLmwH1OZAAAA HTTP/1.1" 200 -
+04:46:28 [werkzeug] INFO: 127.0.0.1 - - [27/Feb/2026 04:46:28] "GET /api/status HTTP/1.1" 200 -
+04:46:29 [werkzeug] INFO: 127.0.0.1 - - [27/Feb/2026 04:46:29] "GET /socket.io/?EIO=4&transport=polling&t=PoSngAu HTTP/1.1" 200 -
+04:46:29 [BOT.WS] INFO: 🔌 WebSocket bağlandı
+04:46:29 [werkzeug] INFO: 127.0.0.1 - - [27/Feb/2026 04:46:29] "POST /socket.io/?EIO=4&transport=polling&t=PoSngGS&sid=AKoTlibxX39P7k27AAAC HTTP/1.1" 200 -
+04:46:30 [werkzeug] INFO: 127.0.0.1 - - [27/Feb/2026 04:46:30] "GET /socket.io/?EIO=4&transport=polling&t=PoSngGT&sid=AKoTlibxX39P7k27AAAC HTTP/1.1" 200 -
+04:46:30 [werkzeug] INFO: 127.0.0.1 - - [27/Feb/2026 04:46:30] "GET /api/status HTTP/1.1" 200 -
+04:46:31 [BOT.NEWS] INFO: 📰 20 haber güncellendi
+04:46:31 [BOT.CALENDAR] INFO: 📅 19 ekonomik olay yüklendi
+04:46:36 [werkzeug] INFO: 127.0.0.1 - - [27/Feb/2026 04:46:36] "GET /api/instruments HTTP/1.1" 200 -
+04:46:36 [werkzeug] INFO: 127.0.0.1 - - [27/Feb/2026 04:46:36] "GET /api/instruments HTTP/1.1" 200 -
+04:46:36 [werkzeug] INFO: 127.0.0.1 - - [27/Feb/2026 04:46:36] "GET /api/balance_history HTTP/1.1" 200 -
+04:46:36 [werkzeug] INFO: 127.0.0.1 - - [27/Feb/2026 04:46:36] "GET /api/balance_history HTTP/1.1" 200 -
+04:46:44 [BOT.SIGNAL] INFO: XAUUSD: 1D ters yön → sinyal iptal
+04:46:46 [BOT.TRADE] INFO: ✅ TRADE AÇILDI: GBPUSD LONG @ 1.348617672920227 | SL: 1.34785 TP1: 1.35 TP2: 1.35092 | Lot: 0.1 Risk: $1.0
+04:46:46 [BOT.TRADE] INFO: ✅ TRADE AÇILDI: XAGUSD LONG @ 89.00499725341797 | SL: 91.54041 TP1: 93.56874 TP2: 96.61124 | Lot: 0.01 Risk: $1.0
+04:46:46 [BOT.TRADE] INFO: ✅ TRADE AÇILDI: USDCHF SHORT @ 0.7734699845314026 | SL: 0.77494 TP1: 0.77082 TP2: 0.76906 | Lot: 0.1 Risk: $1.0
+04:46:46 [BOT.TRADE] WARNING: ❌ AUDUSD: Maks açık işlem (3)
+04:46:46 [BOT] INFO: ⚠️ USDJPY: Korelasyon: USDCHF zaten SHORT
+04:46:46 [BOT.TRADE] WARNING: ❌ EURUSD: Maks açık işlem (3)
+04:46:46 [BOT.TRADE] WARNING: ❌ NZDUSD: Maks açık işlem (3)
+04:46:58 [werkzeug] INFO: 127.0.0.1 - - [27/Feb/2026 04:46:58] "GET /api/instruments HTTP/1.1" 200 -
+04:46:59 [werkzeug] INFO: 127.0.0.1 - - [27/Feb/2026 04:46:59] "GET /api/instruments HTTP/1.1" 200 -

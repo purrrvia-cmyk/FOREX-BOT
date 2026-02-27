@@ -29,6 +29,7 @@ from intelligence.economic_calendar import EconomicCalendar
 from intelligence.learning_engine import LearningEngine
 from web.app import create_app, socketio
 from config.instruments import INSTRUMENTS
+from config.capital import CAPITAL
 
 
 def main():
@@ -48,7 +49,7 @@ def main():
     signals = SignalGenerator(news_fetcher=news, learning_engine=learning)
     trades = TradeManager(capital)
 
-    logger.info(f"💰 Bakiye: ${capital.balance:.2f} | Kaldıraç: {capital.buying_power:.0f}x")
+    logger.info(f"💰 Bakiye: ${capital.balance:.2f} | Kaldıraç: 1:{CAPITAL.get('leverage', 2)}")
     logger.info(f"📊 {len(INSTRUMENTS)} enstrüman aktif")
 
     # Flask app
@@ -99,12 +100,17 @@ def main():
                             continue
 
                         # Sinyal kaydet
+                        entry_d = r.get("entry_data", r)
                         db.save_signal({
                             "instrument": key,
                             "signal": sig,
-                            "score": r.get("final_score", 0),
-                            "reasons": str(r.get("entry_data", {}).get(
-                                "reasons_bull" if "LONG" in sig else "reasons_bear", []))[:500],
+                            "net_score": r.get("final_score", 0),
+                            "price": entry_d.get("price", 0),
+                            "sl_tp": entry_d.get("sl_tp", {}),
+                            "reasons_bull": entry_d.get("reasons_bull", []),
+                            "reasons_bear": entry_d.get("reasons_bear", []),
+                            "daily_bias": entry_d.get("daily_bias", {}),
+                            "kill_zones": entry_d.get("kill_zones", {}),
                         })
 
                         # İşlem aç

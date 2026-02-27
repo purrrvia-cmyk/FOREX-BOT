@@ -35,35 +35,27 @@ class LearningEngine:
             # Pattern score güncelle
             current = db.get_pattern_score(concept)
             if current:
-                new_total = current["total_trades"] + 1
+                new_total = current["total"] + 1
                 new_wins = current["wins"] + (1 if pnl > 0 else 0)
-                new_losses = current["losses"] + (1 if pnl < 0 else 0)
-                new_pnl = current["total_pnl"] + pnl
                 new_wr = round((new_wins / new_total) * 100, 1) if new_total > 0 else 0
             else:
                 new_total = 1
                 new_wins = 1 if pnl > 0 else 0
-                new_losses = 1 if pnl < 0 else 0
-                new_pnl = pnl
                 new_wr = 100 if pnl > 0 else 0
 
             # Disable kontrolü (min 50 trade)
-            disabled = False
+            disabled = 0
             disabled_until = None
             if new_total >= LEARNING["min_trades_to_learn"]:
                 if new_wr < LEARNING["disable_winrate"]:
-                    disabled = True
+                    disabled = 1
                     disabled_until = (datetime.now() + timedelta(days=7)).isoformat()
                     logger.warning(f"⚠️ '{concept}' devre dışı: WR %{new_wr} < %{LEARNING['disable_winrate']}")
                 elif new_wr < LEARNING["bad_winrate"]:
                     logger.info(f"📊 '{concept}' düşük performans: WR %{new_wr}")
 
-            db.upsert_pattern_score(concept, {
-                "total_trades": new_total, "wins": new_wins,
-                "losses": new_losses, "total_pnl": round(new_pnl, 2),
-                "winrate": new_wr, "disabled": disabled,
-                "disabled_until": disabled_until,
-            })
+            db.upsert_pattern_score(concept, new_total, new_wins,
+                                    new_wr, 0, disabled, disabled_until)
 
         # Learning log kaydet
         db.save_learning_log({
@@ -100,10 +92,10 @@ class LearningEngine:
             from database.connection import get_db
             conn = get_db()
             rows = conn.execute(
-                "SELECT pattern FROM pattern_scores WHERE disabled=1 AND (disabled_until IS NULL OR disabled_until > ?)",
+                "SELECT pattern_key FROM pattern_scores WHERE disabled=1 AND (disabled_until IS NULL OR disabled_until > ?)",
                 (now,)
             ).fetchall()
-            patterns = [r["pattern"] for r in rows]
+            patterns = [r["pattern_key"] for r in rows]
         except Exception as e:
             logger.error(f"Disabled pattern hatası: {e}")
         return patterns
@@ -116,14 +108,14 @@ class LearningEngine:
 
             # En iyi konseptler
             best = conn.execute(
-                "SELECT pattern, winrate, total_trades, total_pnl FROM pattern_scores "
-                "WHERE total_trades >= 5 ORDER BY winrate DESC LIMIT 5"
+                "SELECT pattern_key as pattern, win_rate as winrate, total as total_trades, 0 as total_pnl FROM pattern_scores "
+                "WHERE total >= 5 ORDER BY win_rate DESC LIMIT 5"
             ).fetchall()
 
             # En kötü
             worst = conn.execute(
-                "SELECT pattern, winrate, total_trades, total_pnl FROM pattern_scores "
-                "WHERE total_trades >= 5 ORDER BY winrate ASC LIMIT 5"
+                "SELECT pattern_key as pattern, win_rate as winrate, total as total_trades, 0 as total_pnl FROM pattern_scores "
+                "WHERE total >= 5 ORDER BY win_rate ASC LIMIT 5"
             ).fetchall()
 
             # KZ performans
@@ -161,25 +153,23 @@ class LearningEngine:
             from database.connection import get_db
             conn = get_db()
             rows = conn.execute(
-                "SELECT pattern, winrate, total_trades, disabled FROM pattern_scores "
-                "WHERE total_trades >= ?", (LEARNING["min_trades_to_learn"],)
+                "SELECT pattern_key, win_rate, total, wins, disabled FROM pattern_scores "
+                "WHERE total >= ?", (LEARNING["min_trades_to_learn"],)
             ).fetchall()
 
             for r in rows:
                 # Re-enable edilebilir mi?
-                if r["disabled"] and r["winrate"] >= LEARNING["good_winrate"]:
-                    db.upsert_pattern_score(r["pattern"], {
-                        "disabled": False, "disabled_until": None,
-                    })
-                    logger.info(f"✅ '{r['pattern']}' yeniden aktif: WR %{r['winrate']}")
+                if r["disabled"] and r["win_rate"] >= LEARNING["good_winrate"]:
+                    db.upsert_pattern_score(r["pattern_key"], r["total"], r["wins"],
+                                            r["win_rate"], 0, 0, None)
+                    logger.info(f"✅ '{r['pattern_key']}' yeniden aktif: WR %{r['win_rate']}")
 
                 # Yeni disable?
-                if not r["disabled"] and r["winrate"] < LEARNING["disable_winrate"]:
-                    db.upsert_pattern_score(r["pattern"], {
-                        "disabled": True,
-                        "disabled_until": (datetime.now() + timedelta(days=7)).isoformat(),
-                    })
-                    logger.warning(f"⚠️ '{r['pattern']}' devre dışı: WR %{r['winrate']}")
+                if not r["disabled"] and r["win_rate"] < LEARNING["disable_winrate"]:
+                    db.upsert_pattern_score(r["pattern_key"], r["total"], r["wins"],
+                                            r["win_rate"], 0, 1,
+                                            (datetime.now() + timedelta(days=7)).isoformat())
+                    logger.warning(f"⚠️ '{r['pattern_key']}' devre dışı: WR %{r['win_rate']}")
 
         except Exception as e:
             logger.error(f"Periyodik review hatası: {e}")
