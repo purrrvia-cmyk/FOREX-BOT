@@ -3,650 +3,943 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FOREX ICT Bot — Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>FOREX ICT Bot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --bg-dark: #0d1117;
-            --bg-card: #161b22;
-            --bg-card2: #1c2333;
-            --border: #30363d;
-            --text: #e6edf3;
-            --text-dim: #8b949e;
-            --green: #2ea043;
-            --red: #f85149;
-            --blue: #58a6ff;
-            --yellow: #d29922;
-            --purple: #bc8cff;
+            --bg: #06070a;
+            --bg-1: #0c0e14;
+            --bg-2: #12151e;
+            --bg-3: #181c28;
+            --bg-glass: rgba(18, 21, 30, 0.6);
+            --border: rgba(255,255,255,0.06);
+            --border-hover: rgba(255,255,255,0.12);
+            --text: #e8ecf4;
+            --text-2: #9ca3b4;
+            --text-3: #5c6478;
+            --green: #00e68a;
+            --green-bg: rgba(0,230,138,0.08);
+            --green-border: rgba(0,230,138,0.2);
+            --red: #ff4d6a;
+            --red-bg: rgba(255,77,106,0.08);
+            --red-border: rgba(255,77,106,0.2);
+            --blue: #4d94ff;
+            --blue-bg: rgba(77,148,255,0.08);
+            --blue-border: rgba(77,148,255,0.2);
+            --yellow: #ffb84d;
+            --yellow-bg: rgba(255,184,77,0.08);
+            --purple: #a78bfa;
+            --purple-bg: rgba(167,139,250,0.08);
+            --accent-gradient: linear-gradient(135deg, #4d94ff 0%, #a78bfa 50%, #00e68a 100%);
+            --card-shadow: 0 4px 24px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --radius-xs: 6px;
         }
-        body { background: var(--bg-dark); color: var(--text); font-family: 'Segoe UI', sans-serif; }
-        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; }
-        .card-header { background: var(--bg-card2); border-bottom: 1px solid var(--border); font-weight: 600; }
-        .badge-long { background: var(--green); }
-        .badge-short { background: var(--red); }
-        .badge-wait { background: var(--text-dim); }
-        .badge-high { background: var(--red); }
-        .badge-medium { background: var(--yellow); }
-        .badge-low { background: var(--green); }
-        .price-up { color: var(--green); }
-        .price-down { color: var(--red); }
-        .kz-active { color: var(--green); font-weight: bold; }
-        .kz-inactive { color: var(--text-dim); }
-        .signal-card { transition: all 0.3s; cursor: pointer; }
-        .signal-card:hover { border-color: var(--blue); transform: translateY(-2px); }
-        .signal-strong-long { border-left: 4px solid var(--green); }
-        .signal-long { border-left: 4px solid #3fb950; }
-        .signal-strong-short { border-left: 4px solid var(--red); }
-        .signal-short { border-left: 4px solid #da3633; }
-        .signal-wait { border-left: 4px solid var(--text-dim); }
-        .nav-pills .nav-link { color: var(--text-dim); }
-        .nav-pills .nav-link.active { background: var(--blue); color: #fff; }
-        .stat-value { font-size: 1.8rem; font-weight: 700; }
-        .commentary-box { background: var(--bg-card2); border-radius: 8px; padding: 15px;
-                          font-family: 'Courier New', monospace; font-size: 0.85rem;
-                          white-space: pre-wrap; max-height: 400px; overflow-y: auto; }
-        #scanner-status { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
-        .scanner-on { background: var(--green); box-shadow: 0 0 8px var(--green); }
-        .scanner-off { background: var(--red); }
-        .news-item { padding: 8px 0; border-bottom: 1px solid var(--border); }
-        .table { color: var(--text); }
-        .table th { border-color: var(--border); color: var(--text-dim); font-weight: 500; }
-        .table td { border-color: var(--border); }
-        .btn-scan { background: linear-gradient(135deg, var(--blue), var(--purple)); border: none; }
-        .btn-scan:hover { opacity: 0.9; }
-        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-        .scanning { animation: pulse 1.5s infinite; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', -apple-system, sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ═══ SCROLLBAR ═══ */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--text-3); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-2); }
+
+        /* ═══ TOPBAR ═══ */
+        .topbar {
+            position: sticky; top: 0; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 28px; height: 60px;
+            background: rgba(6,7,10,0.85);
+            backdrop-filter: blur(20px) saturate(1.5);
+            border-bottom: 1px solid var(--border);
+        }
+        .topbar-brand {
+            display: flex; align-items: center; gap: 12px;
+            font-weight: 700; font-size: 1.1rem; letter-spacing: -0.3px;
+        }
+        .topbar-brand .logo {
+            width: 34px; height: 34px; border-radius: 10px;
+            background: var(--accent-gradient);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; font-weight: 800; color: #fff;
+        }
+        .topbar-brand .tag {
+            font-size: 0.6rem; font-weight: 500; color: var(--blue);
+            background: var(--blue-bg); padding: 2px 8px; border-radius: 20px;
+            border: 1px solid var(--blue-border);
+        }
+        .topbar-actions { display: flex; align-items: center; gap: 10px; }
+        .topbar-time { color: var(--text-3); font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; }
+
+        /* ═══ BUTTONS ═══ */
+        .btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 16px; border-radius: var(--radius-xs); border: none;
+            font-family: 'Inter', sans-serif; font-size: 0.8rem; font-weight: 500;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-primary {
+            background: var(--blue); color: #fff;
+            box-shadow: 0 2px 12px rgba(77,148,255,0.3);
+        }
+        .btn-primary:hover { background: #6aa8ff; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(77,148,255,0.4); }
+        .btn-ghost {
+            background: var(--bg-2); color: var(--text-2); border: 1px solid var(--border);
+        }
+        .btn-ghost:hover { background: var(--bg-3); color: var(--text); border-color: var(--border-hover); }
+        .btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+        .btn-danger:hover { background: rgba(255,77,106,0.15); }
+        .btn-sm { padding: 5px 10px; font-size: 0.75rem; }
+
+        /* ═══ SCANNER DOT ═══ */
+        .scanner-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--text-3); transition: all 0.3s;
+        }
+        .scanner-dot.active {
+            background: var(--green);
+            box-shadow: 0 0 12px var(--green), 0 0 4px var(--green);
+            animation: pulse-dot 2s infinite;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { box-shadow: 0 0 12px var(--green), 0 0 4px var(--green); }
+            50% { box-shadow: 0 0 20px var(--green), 0 0 8px var(--green); }
+        }
+
+        /* ═══ LAYOUT ═══ */
+        .layout { display: flex; min-height: calc(100vh - 60px); }
+
+        /* ═══ SIDEBAR ═══ */
+        .sidebar {
+            width: 220px; min-width: 220px;
+            background: var(--bg-1); border-right: 1px solid var(--border);
+            padding: 20px 12px; display: flex; flex-direction: column; gap: 4px;
+        }
+        .sidebar-label {
+            font-size: 0.65rem; font-weight: 600; color: var(--text-3);
+            text-transform: uppercase; letter-spacing: 1.2px;
+            padding: 12px 12px 6px;
+        }
+        .sidebar-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; border-radius: var(--radius-sm);
+            color: var(--text-2); font-size: 0.85rem; font-weight: 500;
+            cursor: pointer; transition: all 0.15s; border: 1px solid transparent;
+        }
+        .sidebar-item:hover { background: var(--bg-2); color: var(--text); }
+        .sidebar-item.active {
+            background: var(--blue-bg); color: var(--blue);
+            border-color: var(--blue-border);
+        }
+        .sidebar-item i { font-size: 1.05rem; width: 22px; text-align: center; }
+        .sidebar-item .badge-count {
+            margin-left: auto; font-size: 0.7rem; font-weight: 600;
+            padding: 1px 7px; border-radius: 20px;
+            background: var(--bg-3); color: var(--text-3);
+        }
+
+        /* ═══ MAIN CONTENT ═══ */
+        .main { flex: 1; padding: 24px; overflow-y: auto; }
+
+        /* ═══ PAGE HEADER ═══ */
+        .page-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 24px;
+        }
+        .page-header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px; }
+        .page-header p { color: var(--text-3); font-size: 0.85rem; margin-top: 2px; }
+
+        /* ═══ STAT CARDS ═══ */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px; margin-bottom: 24px;
+        }
+        .stat-card {
+            background: var(--bg-2); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 20px;
+            position: relative; overflow: hidden; transition: all 0.2s;
+        }
+        .stat-card:hover { border-color: var(--border-hover); transform: translateY(-2px); box-shadow: var(--card-shadow); }
+        .stat-card .stat-icon {
+            width: 40px; height: 40px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; margin-bottom: 14px;
+        }
+        .stat-card .stat-label { font-size: 0.75rem; color: var(--text-3); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-card .stat-value { font-size: 1.7rem; font-weight: 700; margin-top: 4px; letter-spacing: -0.5px; }
+        .stat-card .stat-sub { font-size: 0.75rem; color: var(--text-3); margin-top: 4px; }
+        .stat-card .stat-glow {
+            position: absolute; top: -30px; right: -30px; width: 100px; height: 100px;
+            border-radius: 50%; filter: blur(40px); opacity: 0.15; pointer-events: none;
+        }
+
+        /* ═══ CARDS ═══ */
+        .card {
+            background: var(--bg-2); border: 1px solid var(--border);
+            border-radius: var(--radius); overflow: hidden; transition: all 0.2s;
+        }
+        .card:hover { border-color: var(--border-hover); }
+        .card-head {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 20px; border-bottom: 1px solid var(--border);
+        }
+        .card-head h3 {
+            font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 8px;
+        }
+        .card-head h3 i { color: var(--text-3); }
+        .card-body { padding: 16px 20px; }
+        .card-body.flush { padding: 0; }
+
+        /* ═══ GRID LAYOUTS ═══ */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .grid-3-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+        .grid-1-3 { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; }
+        .stack { display: flex; flex-direction: column; gap: 16px; }
+
+        /* ═══ PAIR CARDS ═══ */
+        .pair-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+        .pair-card {
+            background: var(--bg-2); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 16px;
+            cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;
+        }
+        .pair-card:hover { border-color: var(--border-hover); transform: translateY(-2px); box-shadow: var(--card-shadow); }
+        .pair-card .pair-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        .pair-card .pair-name { font-weight: 700; font-size: 1rem; letter-spacing: -0.3px; }
+        .pair-card .pair-price { font-family: 'JetBrains Mono', monospace; font-size: 1.15rem; font-weight: 600; }
+        .pair-card .pair-meta { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+        .pair-card .pair-meta span { font-size: 0.72rem; color: var(--text-3); }
+        .pair-card .signal-glow {
+            position: absolute; bottom: -20px; right: -20px;
+            width: 80px; height: 80px; border-radius: 50%;
+            filter: blur(30px); opacity: 0.12; pointer-events: none;
+        }
+
+        /* ═══ SIGNAL BADGE ═══ */
+        .signal-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 3px 10px; border-radius: 20px;
+            font-size: 0.7rem; font-weight: 600; letter-spacing: 0.3px;
+        }
+        .signal-badge.long { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+        .signal-badge.short { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+        .signal-badge.wait { background: rgba(92,100,120,0.15); color: var(--text-3); border: 1px solid rgba(92,100,120,0.2); }
+        .signal-badge.strong { font-weight: 700; }
+        .signal-badge.strong.long { box-shadow: 0 0 12px rgba(0,230,138,0.2); }
+        .signal-badge.strong.short { box-shadow: 0 0 12px rgba(255,77,106,0.2); }
+
+        /* ═══ TABLE ═══ */
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th {
+            text-align: left; padding: 10px 16px; font-size: 0.7rem; font-weight: 600;
+            color: var(--text-3); text-transform: uppercase; letter-spacing: 0.8px;
+            border-bottom: 1px solid var(--border); background: var(--bg-3);
+        }
+        .data-table td {
+            padding: 12px 16px; font-size: 0.82rem; border-bottom: 1px solid var(--border);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+        /* ═══ POSITIONS ═══ */
+        .position-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 0; border-bottom: 1px solid var(--border);
+        }
+        .position-item:last-child { border-bottom: none; }
+        .position-left { display: flex; align-items: center; gap: 12px; }
+        .position-icon {
+            width: 36px; height: 36px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem; font-weight: 700;
+        }
+        .position-icon.long { background: var(--green-bg); color: var(--green); }
+        .position-icon.short { background: var(--red-bg); color: var(--red); }
+        .position-name { font-weight: 600; font-size: 0.9rem; }
+        .position-detail { font-size: 0.75rem; color: var(--text-3); margin-top: 2px; }
+        .position-pnl { font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 0.95rem; }
+
+        /* ═══ NEWS ITEMS ═══ */
+        .news-item { padding: 14px 0; border-bottom: 1px solid var(--border); }
+        .news-item:last-child { border-bottom: none; }
+        .news-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+        .news-impact { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .news-impact.high { background: var(--red); box-shadow: 0 0 6px var(--red); }
+        .news-impact.medium { background: var(--yellow); }
+        .news-impact.low { background: var(--green); }
+        .news-currency {
+            font-size: 0.65rem; font-weight: 700; padding: 1px 6px;
+            border-radius: 4px; background: var(--bg-3); color: var(--text-2);
+        }
+        .news-title { font-size: 0.82rem; font-weight: 500; line-height: 1.4; }
+        .news-source { font-size: 0.7rem; color: var(--text-3); margin-top: 4px; }
+
+        /* ═══ EVENTS ═══ */
+        .event-item {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 12px 0; border-bottom: 1px solid var(--border);
+        }
+        .event-item:last-child { border-bottom: none; }
+        .event-impact-bar { width: 3px; min-height: 40px; border-radius: 2px; flex-shrink: 0; }
+        .event-impact-bar.high { background: var(--red); }
+        .event-impact-bar.medium { background: var(--yellow); }
+        .event-name { font-size: 0.82rem; font-weight: 600; }
+        .event-meta { font-size: 0.72rem; color: var(--text-3); margin-top: 2px; }
+
+        /* ═══ COMMENTARY BOX ═══ */
+        .commentary-box {
+            background: var(--bg-1); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 20px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+            line-height: 1.7; white-space: pre-wrap;
+            max-height: 500px; overflow-y: auto; color: var(--text-2);
+        }
+
+        /* ═══ PAIR LIST (Analysis) ═══ */
+        .pair-list-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px; border-radius: var(--radius-xs);
+            cursor: pointer; transition: all 0.15s; border: 1px solid transparent;
+        }
+        .pair-list-item:hover { background: var(--bg-3); }
+        .pair-list-item.active { background: var(--blue-bg); border-color: var(--blue-border); }
+        .pair-list-item .pair-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-3); }
+        .pair-list-item .pair-label { font-size: 0.85rem; font-weight: 600; }
+
+        /* ═══ SELECT ═══ */
+        .select-custom {
+            background: var(--bg-3); color: var(--text-2); border: 1px solid var(--border);
+            border-radius: var(--radius-xs); padding: 6px 12px;
+            font-family: 'Inter', sans-serif; font-size: 0.8rem;
+            cursor: pointer; outline: none;
+        }
+        .select-custom:focus { border-color: var(--blue-border); }
+
+        /* ═══ EMPTY STATE ═══ */
+        .empty-state {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 40px; color: var(--text-3);
+        }
+        .empty-state i { font-size: 2rem; margin-bottom: 12px; opacity: 0.3; }
+        .empty-state p { font-size: 0.85rem; }
+
+        /* ═══ LOADING ═══ */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite; }
+
+        /* ═══ HIDE PAGES ═══ */
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* ═══ RESPONSIVE ═══ */
+        @media (max-width: 900px) {
+            .sidebar { display: none; }
+            .grid-3-1, .grid-1-3, .grid-2 { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .pair-grid { grid-template-columns: 1fr 1fr; }
+        }
     </style>
 </head>
 <body>
-    <!-- NAVBAR -->
-    <nav class="navbar navbar-dark" style="background: var(--bg-card);">
-        <div class="container-fluid">
-            <span class="navbar-brand mb-0 h1">
-                <i class="bi bi-currency-exchange"></i> FOREX ICT Bot
-                <small class="text-muted ms-2" style="font-size:0.7rem;">%100 ICT Uyumlu</small>
-            </span>
-            <div class="d-flex align-items-center gap-3">
-                <span id="scanner-status" class="scanner-off" title="Scanner durumu"></span>
-                <button class="btn btn-sm btn-outline-light" id="btn-toggle-scanner">
-                    <i class="bi bi-play-circle"></i> Scanner
-                </button>
-                <button class="btn btn-sm btn-scan text-white" id="btn-manual-scan">
-                    <i class="bi bi-search"></i> Tara
-                </button>
-                <small class="text-muted" id="last-update">—</small>
-            </div>
-        </div>
-    </nav>
 
-    <div class="container-fluid mt-3">
-        <!-- TAB NAV -->
-        <ul class="nav nav-pills mb-3" id="mainTabs">
-            <li class="nav-item"><a class="nav-link active" data-bs-toggle="pill" href="#tab-overview">Genel Bakış</a></li>
-            <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tab-signals">Sinyaller</a></li>
-            <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tab-trades">Trade'ler</a></li>
-            <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tab-news">Haberler</a></li>
-            <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tab-analysis">Detaylı Analiz</a></li>
-        </ul>
-
-        <div class="tab-content">
-            <!-- ═══ GENEL BAKIŞ ═══ -->
-            <div class="tab-pane fade show active" id="tab-overview">
-                <!-- İstatistik Kartları -->
-                <div class="row g-3 mb-3">
-                    <div class="col-md-2">
-                        <div class="card p-3 text-center">
-                            <div class="text-muted small">Açık Pozisyon</div>
-                            <div class="stat-value" id="stat-open">0</div>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="card p-3 text-center">
-                            <div class="text-muted small">Toplam Trade</div>
-                            <div class="stat-value" id="stat-total">0</div>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="card p-3 text-center">
-                            <div class="text-muted small">Win Rate</div>
-                            <div class="stat-value" id="stat-wr">—</div>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="card p-3 text-center">
-                            <div class="text-muted small">Toplam PnL (pip)</div>
-                            <div class="stat-value" id="stat-pnl">0</div>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="card p-3 text-center">
-                            <div class="text-muted small">Kill Zone</div>
-                            <div class="stat-value" style="font-size:1rem;" id="stat-kz">—</div>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="card p-3 text-center">
-                            <div class="text-muted small">Silver Bullet</div>
-                            <div class="stat-value" style="font-size:1rem;" id="stat-sb">—</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Fiyatlar + Sinyal Kartları -->
-                <div class="row g-3">
-                    <div class="col-md-8">
-                        <div class="card">
-                            <div class="card-header"><i class="bi bi-graph-up"></i> Pariteler & Son Sinyaller</div>
-                            <div class="card-body p-2">
-                                <div class="row g-2" id="signal-cards"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <!-- Açık Pozisyonlar -->
-                        <div class="card mb-3">
-                            <div class="card-header"><i class="bi bi-briefcase"></i> Açık Pozisyonlar</div>
-                            <div class="card-body p-2" id="open-positions">
-                                <div class="text-muted text-center py-3">Açık pozisyon yok</div>
-                            </div>
-                        </div>
-                        <!-- Son Haberler -->
-                        <div class="card">
-                            <div class="card-header"><i class="bi bi-newspaper"></i> Son Haberler</div>
-                            <div class="card-body p-2" style="max-height:300px; overflow-y:auto;" id="news-feed">
-                                <div class="text-muted text-center py-3">Yükleniyor...</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ═══ SİNYALLER ═══ -->
-            <div class="tab-pane fade" id="tab-signals">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span><i class="bi bi-bell"></i> Sinyal Geçmişi</span>
-                        <select class="form-select form-select-sm" style="width:150px; background:var(--bg-dark); color:var(--text); border-color:var(--border);"
-                                id="signal-filter">
-                            <option value="ALL">Tümü</option>
-                            <option value="STRONG_LONG">Strong Long</option>
-                            <option value="LONG">Long</option>
-                            <option value="STRONG_SHORT">Strong Short</option>
-                            <option value="SHORT">Short</option>
-                        </select>
-                    </div>
-                    <div class="card-body p-0">
-                        <table class="table table-sm mb-0">
-                            <thead><tr>
-                                <th>Tarih</th><th>Parite</th><th>Sinyal</th>
-                                <th>Skor</th><th>Confluence</th><th>Fiyat</th>
-                                <th>SL</th><th>TP1</th><th>Bias</th>
-                            </tr></thead>
-                            <tbody id="signal-table"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ═══ TRADE'LER ═══ -->
-            <div class="tab-pane fade" id="tab-trades">
-                <div class="row g-3 mb-3">
-                    <div class="col-md-3">
-                        <div class="card p-3 text-center">
-                            <div class="text-muted small">30 Gün Win Rate</div>
-                            <div class="stat-value" id="trade-wr">—</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card p-3 text-center">
-                            <div class="text-muted small">30 Gün PnL</div>
-                            <div class="stat-value" id="trade-pnl">—</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card p-3 text-center">
-                            <div class="text-muted small">En İyi Trade</div>
-                            <div class="stat-value price-up" id="trade-best">—</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card p-3 text-center">
-                            <div class="text-muted small">En Kötü Trade</div>
-                            <div class="stat-value price-down" id="trade-worst">—</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-header"><i class="bi bi-list-check"></i> Trade Geçmişi</div>
-                    <div class="card-body p-0">
-                        <table class="table table-sm mb-0">
-                            <thead><tr>
-                                <th>ID</th><th>Parite</th><th>Yön</th><th>Giriş</th>
-                                <th>SL</th><th>TP1</th><th>Durum</th><th>PnL (pip)</th>
-                                <th>Kapanış</th><th>İşlem</th>
-                            </tr></thead>
-                            <tbody id="trade-table"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ═══ HABERLER ═══ -->
-            <div class="tab-pane fade" id="tab-news">
-                <div class="row g-3">
-                    <div class="col-md-7">
-                        <div class="card">
-                            <div class="card-header"><i class="bi bi-rss"></i> Piyasa Haberleri</div>
-                            <div class="card-body" id="news-full-feed" style="max-height:600px; overflow-y:auto;">
-                                <div class="text-muted text-center py-3">Yükleniyor...</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-5">
-                        <div class="card mb-3">
-                            <div class="card-header"><i class="bi bi-calendar-event"></i> Önemli Olaylar</div>
-                            <div class="card-body" id="events-list" style="max-height:300px; overflow-y:auto;">
-                            </div>
-                        </div>
-                        <div class="card">
-                            <div class="card-header"><i class="bi bi-bar-chart"></i> Parite Sentiment</div>
-                            <div class="card-body" id="sentiment-list"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ═══ DETAYLI ANALİZ ═══ -->
-            <div class="tab-pane fade" id="tab-analysis">
-                <div class="row g-3">
-                    <div class="col-md-3">
-                        <div class="card">
-                            <div class="card-header">Parite Seç</div>
-                            <div class="card-body p-2">
-                                <div class="list-group" id="pair-list"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-9">
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between">
-                                <span><i class="bi bi-zoom-in"></i> <span id="analysis-pair-name">Parite seçin...</span></span>
-                                <button class="btn btn-sm btn-scan text-white" id="btn-analyze" disabled>
-                                    <i class="bi bi-lightning"></i> Analiz Et
-                                </button>
-                            </div>
-                            <div class="card-body">
-                                <div class="commentary-box" id="analysis-commentary">
-                                    Detaylı analiz görmek için sol taraftan bir parite seçin ve "Analiz Et" butonuna tıklayın.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<!-- ═══ TOPBAR ═══ -->
+<div class="topbar">
+    <div class="topbar-brand">
+        <div class="logo">F</div>
+        <span>FOREX ICT</span>
+        <span class="tag">16 Konsept</span>
     </div>
+    <div class="topbar-actions">
+        <div class="scanner-dot" id="scanner-dot" title="Scanner durumu"></div>
+        <button class="btn btn-ghost btn-sm" id="btn-toggle-scanner">
+            <i class="bi bi-broadcast"></i> <span id="scanner-label">Baslat</span>
+        </button>
+        <button class="btn btn-primary btn-sm" id="btn-manual-scan">
+            <i class="bi bi-radar"></i> Tara
+        </button>
+        <span class="topbar-time" id="last-update">--:--:--</span>
+    </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4/dist/socket.io.min.js"></script>
-    <script>
-        // ═══ STATE ═══
-        const instruments = {{ instruments | tojson }};
-        let selectedPair = null;
-        let scannerRunning = false;
+<div class="layout">
+    <!-- ═══ SIDEBAR ═══ -->
+    <aside class="sidebar">
+        <div class="sidebar-label">Ana Menu</div>
+        <div class="sidebar-item active" data-page="overview">
+            <i class="bi bi-grid-1x2-fill"></i> Genel Bakis
+        </div>
+        <div class="sidebar-item" data-page="signals">
+            <i class="bi bi-lightning-charge-fill"></i> Sinyaller
+            <span class="badge-count" id="signal-count">0</span>
+        </div>
+        <div class="sidebar-item" data-page="trades">
+            <i class="bi bi-briefcase-fill"></i> Trade'ler
+        </div>
+        <div class="sidebar-item" data-page="news">
+            <i class="bi bi-newspaper"></i> Haberler
+        </div>
+        <div class="sidebar-label" style="margin-top:8px;">Araclar</div>
+        <div class="sidebar-item" data-page="analysis">
+            <i class="bi bi-search-heart"></i> Detayli Analiz
+        </div>
+    </aside>
 
-        // ═══ SOCKET.IO ═══
-        const socket = io();
-        socket.on('connect', () => console.log('WS connected'));
-        socket.on('status', d => {
-            scannerRunning = d.scanner_running;
-            updateScannerUI();
-        });
-        socket.on('scan_update', d => {
-            renderSignalCards(d.results);
-            document.getElementById('last-update').textContent = new Date().toLocaleTimeString('tr-TR');
-        });
-        socket.on('trade_update', d => {
-            loadPortfolio();
-        });
+    <!-- ═══ MAIN CONTENT ═══ -->
+    <main class="main">
 
-        // ═══ INIT ═══
-        document.addEventListener('DOMContentLoaded', () => {
-            renderPairList();
-            loadDashboard();
-            loadNews();
-            loadTrades();
-            loadSignals();
+        <!-- ══════ OVERVIEW PAGE ══════ -->
+        <div class="page active" id="page-overview">
+            <div class="page-header">
+                <div>
+                    <h1>Genel Bakis</h1>
+                    <p>Anlik piyasa durumu ve sinyaller</p>
+                </div>
+            </div>
 
-            document.getElementById('btn-manual-scan').addEventListener('click', manualScan);
-            document.getElementById('btn-toggle-scanner').addEventListener('click', toggleScanner);
-            document.getElementById('btn-analyze').addEventListener('click', analyzePair);
-            document.getElementById('signal-filter').addEventListener('change', loadSignals);
-        });
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:var(--blue-bg); color:var(--blue);">
+                        <i class="bi bi-briefcase-fill"></i>
+                    </div>
+                    <div class="stat-glow" style="background:var(--blue);"></div>
+                    <div class="stat-label">Acik Pozisyon</div>
+                    <div class="stat-value" id="stat-open">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:var(--purple-bg); color:var(--purple);">
+                        <i class="bi bi-bar-chart-fill"></i>
+                    </div>
+                    <div class="stat-glow" style="background:var(--purple);"></div>
+                    <div class="stat-label">Toplam Trade</div>
+                    <div class="stat-value" id="stat-total">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:var(--green-bg); color:var(--green);">
+                        <i class="bi bi-trophy-fill"></i>
+                    </div>
+                    <div class="stat-glow" style="background:var(--green);"></div>
+                    <div class="stat-label">Win Rate</div>
+                    <div class="stat-value" id="stat-wr">&#8212;</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:var(--yellow-bg); color:var(--yellow);">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
+                    <div class="stat-glow" style="background:var(--yellow);"></div>
+                    <div class="stat-label">Toplam PnL</div>
+                    <div class="stat-value" id="stat-pnl">0 pip</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:rgba(255,255,255,0.05); color:var(--text-2);">
+                        <i class="bi bi-clock-fill"></i>
+                    </div>
+                    <div class="stat-label">Kill Zone</div>
+                    <div class="stat-value" style="font-size:1rem;" id="stat-kz">&#8212;</div>
+                    <div class="stat-sub" id="stat-kz-sub"></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:var(--purple-bg); color:var(--purple);">
+                        <i class="bi bi-bullseye"></i>
+                    </div>
+                    <div class="stat-label">Silver Bullet</div>
+                    <div class="stat-value" style="font-size:1rem;" id="stat-sb">&#8212;</div>
+                </div>
+            </div>
 
-        // ═══ API CALLS ═══
-        async function api(url, opts = {}) {
-            try {
-                const r = await fetch(url, opts);
-                return await r.json();
-            } catch (e) {
-                console.error('API error:', e);
-                return { ok: false, error: e.message };
-            }
-        }
-
-        async function loadDashboard() {
-            const d = await api('/api/dashboard');
-            if (!d.ok) return;
-
-            const data = d.data;
-            // Stats
-            document.getElementById('stat-open').textContent = data.portfolio?.open_count || 0;
-            document.getElementById('stat-total').textContent = data.trade_stats?.total || 0;
-            const wr = data.trade_stats?.win_rate;
-            document.getElementById('stat-wr').textContent = wr ? wr + '%' : '—';
-            const pnl = data.trade_stats?.total_pnl || 0;
-            const pnlEl = document.getElementById('stat-pnl');
-            pnlEl.textContent = pnl > 0 ? '+' + pnl : pnl;
-            pnlEl.className = 'stat-value ' + (pnl >= 0 ? 'price-up' : 'price-down');
-
-            // Kill Zone
-            const kz = data.kill_zone;
-            const kzEl = document.getElementById('stat-kz');
-            if (kz?.is_kill_zone) {
-                kzEl.innerHTML = '<span class="kz-active">' + kz.active_zone + '</span>';
-            } else {
-                kzEl.innerHTML = '<span class="kz-inactive">' + (kz?.next_kz || 'Bekleniyor') + '</span>';
-            }
-
-            // Silver Bullet
-            const sb = data.silver_bullet;
-            const sbEl = document.getElementById('stat-sb');
-            if (sb?.is_active) {
-                sbEl.innerHTML = '<span class="kz-active">' + sb.active.name + '</span>';
-            } else {
-                sbEl.innerHTML = '<span class="kz-inactive">İnaktif</span>';
-            }
-
-            // Signal cards (from prices)
-            if (data.prices) renderPriceCards(data.prices, data.recent_signals);
-
-            // Portfolio
-            renderPortfolio(data.portfolio);
-
-            document.getElementById('last-update').textContent = new Date().toLocaleTimeString('tr-TR');
-        }
-
-        function renderPriceCards(prices, signals) {
-            const container = document.getElementById('signal-cards');
-            let html = '';
-            for (const [key, inst] of Object.entries(instruments)) {
-                const p = prices[key];
-                const sig = signals?.find(s => s.instrument === key);
-                const signal = sig?.signal || 'WAIT';
-                const signalClass = signal.toLowerCase().replace('_', '-');
-                const price = p?.last ? p.last.toFixed(5) : '—';
-
-                html += `
-                <div class="col-6 col-md-3">
-                    <div class="card signal-card signal-${signalClass} p-2" onclick="selectPair('${key}')">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <strong>${inst.name}</strong>
-                            <span class="badge ${signal.includes('LONG') ? 'badge-long' : signal.includes('SHORT') ? 'badge-short' : 'badge-wait'}">${signal}</span>
+            <!-- Pair Cards + Portfolio -->
+            <div class="grid-3-1">
+                <div class="card">
+                    <div class="card-head">
+                        <h3><i class="bi bi-currency-exchange"></i> Pariteler</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="pair-grid" id="pair-cards"></div>
+                    </div>
+                </div>
+                <div class="stack">
+                    <div class="card">
+                        <div class="card-head">
+                            <h3><i class="bi bi-wallet2"></i> Acik Pozisyonlar</h3>
                         </div>
-                        <div class="mt-1" style="font-size:1.1rem;">${price}</div>
-                        ${sig?.net_score ? '<small class="text-muted">Skor: ' + sig.net_score + '</small>' : ''}
-                    </div>
-                </div>`;
-            }
-            container.innerHTML = html;
-        }
-
-        function renderSignalCards(results) {
-            const container = document.getElementById('signal-cards');
-            let html = '';
-            for (const r of results) {
-                const inst = instruments[r.instrument];
-                if (!inst) continue;
-                const signal = r.signal || 'WAIT';
-                const signalClass = signal.toLowerCase().replace('_', '-');
-                const price = r.price ? r.price.toFixed(5) : '—';
-
-                html += `
-                <div class="col-6 col-md-3">
-                    <div class="card signal-card signal-${signalClass} p-2" onclick="selectPair('${r.instrument}')">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <strong>${inst.name}</strong>
-                            <span class="badge ${signal.includes('LONG') ? 'badge-long' : signal.includes('SHORT') ? 'badge-short' : 'badge-wait'}">${signal}</span>
+                        <div class="card-body" id="open-positions">
+                            <div class="empty-state"><i class="bi bi-inbox"></i><p>Acik pozisyon yok</p></div>
                         </div>
-                        <div class="mt-1" style="font-size:1.1rem;">${price}</div>
-                        <small class="text-muted">Skor: ${r.net_score || 0} | Conf: ${Math.max(r.conf_bull||0, r.conf_bear||0)}</small>
                     </div>
-                </div>`;
-            }
-            container.innerHTML = html;
-        }
-
-        function renderPortfolio(portfolio) {
-            const container = document.getElementById('open-positions');
-            if (!portfolio?.positions?.length) {
-                container.innerHTML = '<div class="text-muted text-center py-3">Açık pozisyon yok</div>';
-                return;
-            }
-            let html = '';
-            for (const p of portfolio.positions) {
-                const pnlClass = p.pnl_pips >= 0 ? 'price-up' : 'price-down';
-                html += `
-                <div class="d-flex justify-content-between align-items-center p-2 border-bottom" style="border-color:var(--border)!important;">
-                    <div>
-                        <strong>${p.instrument}</strong>
-                        <span class="badge ${p.direction === 'LONG' ? 'badge-long' : 'badge-short'} ms-1">${p.direction}</span>
-                        ${p.be_triggered ? '<i class="bi bi-lock-fill text-warning ms-1" title="BE"></i>' : ''}
-                        ${p.trailing_active ? '<i class="bi bi-arrow-up-right text-info ms-1" title="Trailing"></i>' : ''}
+                    <div class="card">
+                        <div class="card-head">
+                            <h3><i class="bi bi-rss-fill"></i> Son Haberler</h3>
+                        </div>
+                        <div class="card-body" id="sidebar-news" style="max-height:280px; overflow-y:auto;">
+                            <div class="empty-state"><i class="bi bi-newspaper"></i><p>Yukleniyor...</p></div>
+                        </div>
                     </div>
-                    <span class="${pnlClass}">${p.pnl_pips > 0 ? '+' : ''}${p.pnl_pips} pip</span>
-                </div>`;
-            }
-            html += `<div class="text-end p-2 small">Toplam: <strong class="${portfolio.total_unrealized_pnl >= 0 ? 'price-up' : 'price-down'}">${portfolio.total_unrealized_pnl > 0 ? '+' : ''}${portfolio.total_unrealized_pnl} pip</strong></div>`;
-            container.innerHTML = html;
-        }
+                </div>
+            </div>
+        </div>
 
-        async function loadPortfolio() {
-            const d = await api('/api/portfolio');
-            if (d.ok) renderPortfolio(d.portfolio);
-        }
+        <!-- ══════ SIGNALS PAGE ══════ -->
+        <div class="page" id="page-signals">
+            <div class="page-header">
+                <div>
+                    <h1>Sinyal Gecmisi</h1>
+                    <p>Uretilen tum sinyaller</p>
+                </div>
+                <select class="select-custom" id="signal-filter">
+                    <option value="ALL">Tum Sinyaller</option>
+                    <option value="STRONG_LONG">Strong Long</option>
+                    <option value="LONG">Long</option>
+                    <option value="STRONG_SHORT">Strong Short</option>
+                    <option value="SHORT">Short</option>
+                </select>
+            </div>
+            <div class="card">
+                <div class="card-body flush">
+                    <table class="data-table">
+                        <thead><tr>
+                            <th>Tarih</th><th>Parite</th><th>Sinyal</th>
+                            <th>Skor</th><th>Conf.</th><th>Fiyat</th>
+                            <th>SL</th><th>TP1</th><th>Bias</th>
+                        </tr></thead>
+                        <tbody id="signal-table"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-        async function manualScan() {
-            const btn = document.getElementById('btn-manual-scan');
-            btn.disabled = true;
-            btn.classList.add('scanning');
-            btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Taranıyor...';
+        <!-- ══════ TRADES PAGE ══════ -->
+        <div class="page" id="page-trades">
+            <div class="page-header">
+                <div>
+                    <h1>Trade Yonetimi</h1>
+                    <p>Acik ve kapali islemler</p>
+                </div>
+            </div>
+            <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+                <div class="stat-card">
+                    <div class="stat-label">30 Gun Win Rate</div>
+                    <div class="stat-value" id="trade-wr" style="color:var(--green);">&#8212;</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">30 Gun PnL</div>
+                    <div class="stat-value" id="trade-pnl">&#8212;</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">En Iyi Trade</div>
+                    <div class="stat-value" id="trade-best" style="color:var(--green);">&#8212;</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">En Kotu Trade</div>
+                    <div class="stat-value" id="trade-worst" style="color:var(--red);">&#8212;</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body flush">
+                    <table class="data-table">
+                        <thead><tr>
+                            <th>ID</th><th>Parite</th><th>Yon</th><th>Giris</th>
+                            <th>SL</th><th>TP1</th><th>Durum</th><th>PnL</th>
+                            <th>Kapanis</th><th></th>
+                        </tr></thead>
+                        <tbody id="trade-table"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-            const d = await api('/api/scan', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: '{"timeframe":"1h"}' });
-            if (d.ok) renderSignalCards(d.results);
-
-            btn.disabled = false;
-            btn.classList.remove('scanning');
-            btn.innerHTML = '<i class="bi bi-search"></i> Tara';
-            document.getElementById('last-update').textContent = new Date().toLocaleTimeString('tr-TR');
-            loadDashboard();
-        }
-
-        async function toggleScanner() {
-            const d = await api('/api/scanner/toggle', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: '{"action":"toggle"}' });
-            if (d.ok) {
-                scannerRunning = d.running;
-                updateScannerUI();
-            }
-        }
-
-        function updateScannerUI() {
-            const dot = document.getElementById('scanner-status');
-            const btn = document.getElementById('btn-toggle-scanner');
-            if (scannerRunning) {
-                dot.className = 'scanner-on';
-                btn.innerHTML = '<i class="bi bi-pause-circle"></i> Durdur';
-            } else {
-                dot.className = 'scanner-off';
-                btn.innerHTML = '<i class="bi bi-play-circle"></i> Scanner';
-            }
-        }
-
-        // ═══ SIGNALS TAB ═══
-        async function loadSignals() {
-            const filter = document.getElementById('signal-filter').value;
-            const d = await api('/api/signals?signal=' + filter);
-            if (!d.ok) return;
-
-            const tbody = document.getElementById('signal-table');
-            let html = '';
-            for (const s of d.signals) {
-                const badgeClass = s.signal?.includes('LONG') ? 'badge-long' : s.signal?.includes('SHORT') ? 'badge-short' : 'badge-wait';
-                html += `<tr>
-                    <td>${s.created_at || ''}</td>
-                    <td>${s.instrument}</td>
-                    <td><span class="badge ${badgeClass}">${s.signal}</span></td>
-                    <td>${s.net_score || 0}</td>
-                    <td>${Math.max(s.conf_bull||0, s.conf_bear||0)}</td>
-                    <td>${s.price?.toFixed(5) || ''}</td>
-                    <td>${s.sl?.toFixed(5) || '—'}</td>
-                    <td>${s.tp1?.toFixed(5) || '—'}</td>
-                    <td>${s.daily_bias || ''}</td>
-                </tr>`;
-            }
-            tbody.innerHTML = html || '<tr><td colspan="9" class="text-center text-muted">Sinyal yok</td></tr>';
-        }
-
-        // ═══ TRADES TAB ═══
-        async function loadTrades() {
-            const d = await api('/api/trades');
-            if (!d.ok) return;
-
-            // Stats
-            const s = d.stats;
-            document.getElementById('trade-wr').textContent = s.win_rate ? s.win_rate + '%' : '—';
-            const pnl = s.total_pnl || 0;
-            const pnlEl = document.getElementById('trade-pnl');
-            pnlEl.textContent = (pnl > 0 ? '+' : '') + pnl;
-            pnlEl.className = 'stat-value ' + (pnl >= 0 ? 'price-up' : 'price-down');
-            document.getElementById('trade-best').textContent = s.best ? '+' + s.best : '—';
-            document.getElementById('trade-worst').textContent = s.worst || '—';
-
-            // Table
-            const tbody = document.getElementById('trade-table');
-            let html = '';
-            for (const t of d.trades) {
-                const pnlClass = t.pnl_pips > 0 ? 'price-up' : t.pnl_pips < 0 ? 'price-down' : '';
-                const statusBadge = t.status === 'OPEN' ? 'bg-primary' : (t.pnl_pips > 0 ? 'bg-success' : 'bg-danger');
-                html += `<tr>
-                    <td>#${t.id}</td>
-                    <td>${t.instrument}</td>
-                    <td><span class="badge ${t.direction === 'LONG' ? 'badge-long' : 'badge-short'}">${t.direction}</span></td>
-                    <td>${t.entry_price?.toFixed(5)}</td>
-                    <td>${t.sl?.toFixed(5)}</td>
-                    <td>${t.tp1?.toFixed(5)}</td>
-                    <td><span class="badge ${statusBadge}">${t.status}${t.close_reason ? ' ('+t.close_reason+')' : ''}</span></td>
-                    <td class="${pnlClass}">${t.pnl_pips ? (t.pnl_pips > 0 ? '+' : '') + t.pnl_pips : '—'}</td>
-                    <td>${t.closed_at || '—'}</td>
-                    <td>${t.status === 'OPEN' ? '<button class="btn btn-sm btn-outline-danger" onclick="closeTrade('+t.id+')">Kapat</button>' : ''}</td>
-                </tr>`;
-            }
-            tbody.innerHTML = html || '<tr><td colspan="10" class="text-center text-muted">Trade yok</td></tr>';
-        }
-
-        async function closeTrade(id) {
-            if (!confirm('Trade #' + id + ' kapatılsın mı?')) return;
-            await api('/api/trades/close/' + id, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: '{"reason":"MANUAL"}' });
-            loadTrades();
-            loadDashboard();
-        }
-
-        // ═══ NEWS TAB ═══
-        async function loadNews() {
-            const d = await api('/api/news');
-            if (!d.ok) return;
-
-            // Sidebar news feed
-            const sidebarFeed = document.getElementById('news-feed');
-            const fullFeed = document.getElementById('news-full-feed');
-            const eventsList = document.getElementById('events-list');
-
-            let sideHtml = '';
-            let fullHtml = '';
-            const news = d.data?.news || [];
-            for (const n of news.slice(0, 8)) {
-                const icon = n.impact === 'HIGH' ? '🔴' : n.impact === 'MEDIUM' ? '🟡' : '🟢';
-                sideHtml += `<div class="news-item small">${icon} <strong>${n.currency || ''}</strong> ${n.title?.substring(0, 50) || ''}</div>`;
-            }
-            for (const n of news) {
-                const icon = n.impact === 'HIGH' ? '🔴' : n.impact === 'MEDIUM' ? '🟡' : '🟢';
-                const sentIcon = n.sentiment === 'BULLISH' ? '📈' : n.sentiment === 'BEARISH' ? '📉' : '➖';
-                fullHtml += `<div class="news-item">
-                    <div class="d-flex justify-content-between">
-                        <span>${icon} <strong>${n.currency || 'GENEL'}</strong></span>
-                        <small class="text-muted">${n.source || ''}</small>
+        <!-- ══════ NEWS PAGE ══════ -->
+        <div class="page" id="page-news">
+            <div class="page-header">
+                <div>
+                    <h1>Piyasa Haberleri</h1>
+                    <p>Ekonomik takvim ve haber akisi</p>
+                </div>
+            </div>
+            <div class="grid-3-1">
+                <div class="card">
+                    <div class="card-head"><h3><i class="bi bi-megaphone-fill"></i> Haberler</h3></div>
+                    <div class="card-body" id="news-full" style="max-height:600px; overflow-y:auto;"></div>
+                </div>
+                <div class="stack">
+                    <div class="card">
+                        <div class="card-head"><h3><i class="bi bi-calendar-event-fill"></i> Onemli Olaylar</h3></div>
+                        <div class="card-body" id="events-list" style="max-height:350px; overflow-y:auto;"></div>
                     </div>
-                    <div>${n.title || ''} ${sentIcon}</div>
-                    <small class="text-muted">${n.summary?.substring(0, 150) || ''}</small>
-                </div>`;
-            }
-            sidebarFeed.innerHTML = sideHtml || '<div class="text-muted text-center py-2">Haber yok</div>';
-            fullFeed.innerHTML = fullHtml || '<div class="text-muted text-center py-3">Haber yok</div>';
+                </div>
+            </div>
+        </div>
 
-            // Events
-            let evHtml = '';
-            for (const ev of (d.events || [])) {
-                const impClass = ev.impact === 'HIGH' ? 'badge-high' : ev.impact === 'MEDIUM' ? 'badge-medium' : 'badge-low';
-                evHtml += `<div class="news-item small">
-                    <span class="badge ${impClass}">${ev.impact}</span>
-                    <strong>${ev.currency}</strong> — ${ev.name}
-                    <br><small class="text-muted">${ev.schedule || ''}</small>
-                </div>`;
-            }
-            eventsList.innerHTML = evHtml || '<div class="text-muted">Olay yok</div>';
-        }
+        <!-- ══════ ANALYSIS PAGE ══════ -->
+        <div class="page" id="page-analysis">
+            <div class="page-header">
+                <div>
+                    <h1>Detayli Analiz</h1>
+                    <p>ICT 16 konsept detayli parite analizi</p>
+                </div>
+            </div>
+            <div class="grid-1-3">
+                <div class="card">
+                    <div class="card-head"><h3><i class="bi bi-list-ul"></i> Parite Sec</h3></div>
+                    <div class="card-body" id="pair-list-analysis"></div>
+                </div>
+                <div class="card">
+                    <div class="card-head">
+                        <h3><i class="bi bi-graph-up-arrow"></i> <span id="analysis-pair-name">Parite secin</span></h3>
+                        <button class="btn btn-primary btn-sm" id="btn-analyze" disabled>
+                            <i class="bi bi-lightning-charge-fill"></i> Analiz Et
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="commentary-box" id="analysis-commentary">Soldaki listeden bir parite secip "Analiz Et" butonuna tiklayin.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        // ═══ ANALYSIS TAB ═══
-        function renderPairList() {
-            const container = document.getElementById('pair-list');
-            let html = '';
-            for (const [key, inst] of Object.entries(instruments)) {
-                html += `<a href="#" class="list-group-item list-group-item-action" style="background:var(--bg-card2); color:var(--text); border-color:var(--border);"
-                    onclick="selectPair('${key}'); return false;">${inst.name}</a>`;
-            }
-            container.innerHTML = html;
-        }
+    </main>
+</div>
 
-        function selectPair(key) {
-            selectedPair = key;
-            document.getElementById('analysis-pair-name').textContent = instruments[key]?.name || key;
-            document.getElementById('btn-analyze').disabled = false;
+<script src="https://cdn.jsdelivr.net/npm/socket.io-client@4/dist/socket.io.min.js"></script>
+<script>
+const instruments = {{ instruments | tojson }};
+let selectedPair = null;
+let scannerRunning = false;
 
-            // Analiz tab'a geç
-            const tab = document.querySelector('[href="#tab-analysis"]');
-            if (tab) new bootstrap.Tab(tab).show();
-        }
+// ═══ SOCKET ═══
+const socket = io();
+socket.on('connect', () => console.log('WS live'));
+socket.on('status', d => { scannerRunning = d.scanner_running; uiScanner(); });
+socket.on('scan_update', d => { renderScanCards(d.results); tick(); });
+socket.on('trade_update', () => loadPortfolio());
 
-        async function analyzePair() {
-            if (!selectedPair) return;
-            const btn = document.getElementById('btn-analyze');
-            const box = document.getElementById('analysis-commentary');
-            btn.disabled = true;
-            box.textContent = 'Analiz ediliyor...';
+// ═══ INIT ═══
+document.addEventListener('DOMContentLoaded', () => {
+    initNav();
+    initPairList();
+    loadDashboard();
+    loadNews();
+    loadTrades();
+    loadSignals();
+    document.getElementById('btn-manual-scan').onclick = doScan;
+    document.getElementById('btn-toggle-scanner').onclick = toggleScanner;
+    document.getElementById('btn-analyze').onclick = analyzePair;
+    document.getElementById('signal-filter').onchange = loadSignals;
+});
 
-            const d = await api('/api/analyze/' + selectedPair);
-            btn.disabled = false;
+// ═══ NAVIGATION ═══
+function initNav() {
+    document.querySelectorAll('.sidebar-item[data-page]').forEach(el => {
+        el.onclick = () => {
+            document.querySelectorAll('.sidebar-item').forEach(x => x.classList.remove('active'));
+            el.classList.add('active');
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + el.dataset.page).classList.add('active');
+        };
+    });
+}
 
-            if (d.ok && d.data?.commentary) {
-                box.textContent = d.data.commentary;
-            } else {
-                box.textContent = 'Analiz hatası: ' + (d.error || 'Bilinmiyor');
-            }
-        }
+// ═══ API HELPER ═══
+async function api(url, opts) {
+    try { const r = await fetch(url, opts); return await r.json(); }
+    catch(e) { return {ok:false, error:e.message}; }
+}
+function tick() { document.getElementById('last-update').textContent = new Date().toLocaleTimeString('tr-TR'); }
 
-        // Auto-refresh
-        setInterval(() => { if (scannerRunning) loadDashboard(); }, 60000);
-    </script>
+function fmtPrice(key, val) {
+    if (!val && val !== 0) return '\u2014';
+    if (key === 'USDJPY' || key === 'XAUUSD') return val.toFixed(2);
+    return val.toFixed(5);
+}
+
+// ═══ DASHBOARD ═══
+async function loadDashboard() {
+    const d = await api('/api/dashboard');
+    if (!d.ok) return;
+    const data = d.data;
+
+    document.getElementById('stat-open').textContent = data.portfolio?.open_count || 0;
+    document.getElementById('stat-total').textContent = data.trade_stats?.total || 0;
+    const wr = data.trade_stats?.win_rate;
+    document.getElementById('stat-wr').textContent = wr ? wr+'%' : '\u2014';
+    const pnl = data.trade_stats?.total_pnl || 0;
+    const pe = document.getElementById('stat-pnl');
+    pe.textContent = (pnl > 0 ? '+' : '') + pnl + ' pip';
+    pe.style.color = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+
+    const kz = data.kill_zone;
+    const kzEl = document.getElementById('stat-kz');
+    const kzSub = document.getElementById('stat-kz-sub');
+    if (kz?.is_kill_zone) {
+        kzEl.textContent = kz.active_zone.replace('_', ' ');
+        kzEl.style.color = 'var(--green)';
+        kzSub.textContent = 'Aktif';
+    } else {
+        kzEl.textContent = 'Inaktif';
+        kzEl.style.color = 'var(--text-3)';
+        kzSub.textContent = kz?.next_kz || '';
+    }
+
+    const sb = data.silver_bullet;
+    const sbEl = document.getElementById('stat-sb');
+    if (sb?.is_active) { sbEl.textContent = sb.active.name.replace('Silver Bullet', 'SB'); sbEl.style.color = 'var(--purple)'; }
+    else { sbEl.textContent = 'Inaktif'; sbEl.style.color = 'var(--text-3)'; }
+
+    if (data.prices) renderPriceCards(data.prices, data.recent_signals);
+    renderPortfolio(data.portfolio);
+    tick();
+}
+
+function signalBadge(sig) {
+    if (!sig) sig = 'WAIT';
+    const isLong = sig.includes('LONG'), isShort = sig.includes('SHORT');
+    const strong = sig.includes('STRONG');
+    const cls = isLong ? 'long' : isShort ? 'short' : 'wait';
+    const label = sig.replace(/_/g, ' ');
+    return '<span class="signal-badge ' + cls + (strong ? ' strong' : '') + '">' + label + '</span>';
+}
+
+function renderPriceCards(prices, signals) {
+    let h = '';
+    for (const [key, inst] of Object.entries(instruments)) {
+        const p = prices[key];
+        const sig = signals?.find(s => s.instrument === key);
+        const signal = sig?.signal || 'WAIT';
+        const price = p?.last ? fmtPrice(key, p.last) : '\u2014';
+        const isLong = signal.includes('LONG'), isShort = signal.includes('SHORT');
+        const glowColor = isLong ? 'var(--green)' : isShort ? 'var(--red)' : 'transparent';
+        h += '<div class="pair-card" onclick="goAnalysis(\'' + key + '\')">' +
+            '<div class="signal-glow" style="background:' + glowColor + '"></div>' +
+            '<div class="pair-top"><span class="pair-name">' + inst.name + '</span>' + signalBadge(signal) + '</div>' +
+            '<div class="pair-price">' + price + '</div>' +
+            '<div class="pair-meta"><span>Skor: ' + (sig?.net_score || 0) + '</span><span>\u00B7</span><span>Conf: ' + Math.max(sig?.conf_bull || 0, sig?.conf_bear || 0) + '</span></div>' +
+            '</div>';
+    }
+    document.getElementById('pair-cards').innerHTML = h;
+}
+
+function renderScanCards(results) {
+    let h = '';
+    for (const r of results) {
+        const inst = instruments[r.instrument]; if (!inst) continue;
+        const signal = r.signal || 'WAIT';
+        const price = r.price ? fmtPrice(r.instrument, r.price) : '\u2014';
+        const isLong = signal.includes('LONG'), isShort = signal.includes('SHORT');
+        const glowColor = isLong ? 'var(--green)' : isShort ? 'var(--red)' : 'transparent';
+        h += '<div class="pair-card" onclick="goAnalysis(\'' + r.instrument + '\')">' +
+            '<div class="signal-glow" style="background:' + glowColor + '"></div>' +
+            '<div class="pair-top"><span class="pair-name">' + inst.name + '</span>' + signalBadge(signal) + '</div>' +
+            '<div class="pair-price">' + price + '</div>' +
+            '<div class="pair-meta"><span>Skor: ' + (r.net_score || 0) + '</span><span>\u00B7</span><span>Conf: ' + Math.max(r.conf_bull || 0, r.conf_bear || 0) + '</span></div>' +
+            '</div>';
+    }
+    document.getElementById('pair-cards').innerHTML = h;
+}
+
+function renderPortfolio(portfolio) {
+    const c = document.getElementById('open-positions');
+    if (!portfolio?.positions?.length) {
+        c.innerHTML = '<div class="empty-state"><i class="bi bi-inbox"></i><p>Acik pozisyon yok</p></div>';
+        return;
+    }
+    let h = '';
+    for (const p of portfolio.positions) {
+        const cls = p.direction === 'LONG' ? 'long' : 'short';
+        const icon = p.direction === 'LONG' ? '\u2191' : '\u2193';
+        const pnlColor = p.pnl_pips >= 0 ? 'var(--green)' : 'var(--red)';
+        h += '<div class="position-item">' +
+            '<div class="position-left">' +
+            '<div class="position-icon ' + cls + '">' + icon + '</div>' +
+            '<div><div class="position-name">' + p.instrument + '</div>' +
+            '<div class="position-detail">' + p.direction + (p.be_triggered ? ' \uD83D\uDD12 BE' : '') + (p.trailing_active ? ' \uD83D\uDCC8 Trail' : '') + '</div></div></div>' +
+            '<div class="position-pnl" style="color:' + pnlColor + '">' + (p.pnl_pips > 0 ? '+' : '') + p.pnl_pips + ' pip</div></div>';
+    }
+    const totColor = portfolio.total_unrealized_pnl >= 0 ? 'var(--green)' : 'var(--red)';
+    h += '<div style="text-align:right;padding-top:10px;font-size:0.8rem;color:var(--text-3)">Toplam: <strong style="color:' + totColor + '">' + (portfolio.total_unrealized_pnl > 0 ? '+' : '') + portfolio.total_unrealized_pnl + ' pip</strong></div>';
+    c.innerHTML = h;
+}
+
+async function loadPortfolio() {
+    const d = await api('/api/portfolio');
+    if (d.ok) renderPortfolio(d.portfolio);
+}
+
+// ═══ SCAN ═══
+async function doScan() {
+    const btn = document.getElementById('btn-manual-scan');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div> Taraniyor...';
+    const d = await api('/api/scan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"timeframe":"1h"}' });
+    if (d.ok) renderScanCards(d.results);
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-radar"></i> Tara';
+    loadDashboard();
+}
+
+async function toggleScanner() {
+    const d = await api('/api/scanner/toggle', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"action":"toggle"}' });
+    if (d.ok) { scannerRunning = d.running; uiScanner(); }
+}
+
+function uiScanner() {
+    const dot = document.getElementById('scanner-dot');
+    const lbl = document.getElementById('scanner-label');
+    dot.classList.toggle('active', scannerRunning);
+    lbl.textContent = scannerRunning ? 'Durdur' : 'Baslat';
+}
+
+// ═══ SIGNALS ═══
+async function loadSignals() {
+    const f = document.getElementById('signal-filter').value;
+    const d = await api('/api/signals?signal=' + f);
+    if (!d.ok) return;
+    const t = document.getElementById('signal-table');
+    let h = '';
+    for (const s of d.signals) {
+        h += '<tr>' +
+            '<td style="font-size:0.75rem;color:var(--text-3)">' + (s.created_at || '') + '</td>' +
+            '<td style="font-family:Inter;font-weight:600">' + s.instrument + '</td>' +
+            '<td>' + signalBadge(s.signal) + '</td>' +
+            '<td>' + (s.net_score || 0) + '</td>' +
+            '<td>' + Math.max(s.conf_bull || 0, s.conf_bear || 0) + '</td>' +
+            '<td>' + (s.price ? s.price.toFixed(5) : '') + '</td>' +
+            '<td>' + (s.sl ? s.sl.toFixed(5) : '\u2014') + '</td>' +
+            '<td>' + (s.tp1 ? s.tp1.toFixed(5) : '\u2014') + '</td>' +
+            '<td style="color:var(--text-3)">' + (s.daily_bias || '') + '</td>' +
+            '</tr>';
+    }
+    t.innerHTML = h || '<tr><td colspan="9"><div class="empty-state"><i class="bi bi-lightning-charge"></i><p>Henuz sinyal yok</p></div></td></tr>';
+    document.getElementById('signal-count').textContent = d.signals.length;
+}
+
+// ═══ TRADES ═══
+async function loadTrades() {
+    const d = await api('/api/trades');
+    if (!d.ok) return;
+    const s = d.stats;
+    document.getElementById('trade-wr').textContent = s.win_rate ? s.win_rate + '%' : '\u2014';
+    const pnl = s.total_pnl || 0;
+    const pe = document.getElementById('trade-pnl');
+    pe.textContent = (pnl > 0 ? '+' : '') + pnl + ' pip';
+    pe.style.color = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+    document.getElementById('trade-best').textContent = s.best ? '+' + s.best + ' pip' : '\u2014';
+    document.getElementById('trade-worst').textContent = s.worst ? s.worst + ' pip' : '\u2014';
+
+    const t = document.getElementById('trade-table');
+    let h = '';
+    for (const tr of d.trades) {
+        const pC = tr.pnl_pips > 0 ? 'var(--green)' : tr.pnl_pips < 0 ? 'var(--red)' : 'var(--text-3)';
+        const statusBadge = tr.status === 'OPEN' ? signalBadge(tr.direction) : (tr.pnl_pips >= 0 ? signalBadge('WIN') : signalBadge('LOSS'));
+        h += '<tr>' +
+            '<td style="color:var(--text-3)">#' + tr.id + '</td>' +
+            '<td style="font-family:Inter;font-weight:600">' + tr.instrument + '</td>' +
+            '<td>' + signalBadge(tr.direction) + '</td>' +
+            '<td>' + (tr.entry_price ? tr.entry_price.toFixed(5) : '') + '</td>' +
+            '<td>' + (tr.sl ? tr.sl.toFixed(5) : '') + '</td>' +
+            '<td>' + (tr.tp1 ? tr.tp1.toFixed(5) : '') + '</td>' +
+            '<td>' + statusBadge + '</td>' +
+            '<td style="color:' + pC + ';font-weight:600">' + (tr.pnl_pips ? (tr.pnl_pips > 0 ? '+' : '') + tr.pnl_pips : '\u2014') + '</td>' +
+            '<td style="font-size:0.75rem;color:var(--text-3)">' + (tr.closed_at || 'Acik') + '</td>' +
+            '<td>' + (tr.status === 'OPEN' ? '<button class="btn btn-danger btn-sm" onclick="closeTrade(' + tr.id + ')">Kapat</button>' : '') + '</td>' +
+            '</tr>';
+    }
+    t.innerHTML = h || '<tr><td colspan="10"><div class="empty-state"><i class="bi bi-briefcase"></i><p>Henuz trade yok</p></div></td></tr>';
+}
+
+async function closeTrade(id) {
+    if (!confirm('Trade #' + id + ' kapatilsin mi?')) return;
+    await api('/api/trades/close/' + id, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"reason":"MANUAL"}' });
+    loadTrades();
+    loadDashboard();
+}
+
+// ═══ NEWS ═══
+async function loadNews() {
+    const d = await api('/api/news');
+    if (!d.ok) return;
+    const news = d.data?.news || [];
+
+    // Sidebar
+    let sh = '';
+    for (const n of news.slice(0, 6)) {
+        const ic = n.impact === 'HIGH' ? 'high' : n.impact === 'MEDIUM' ? 'medium' : 'low';
+        sh += '<div class="news-item">' +
+            '<div class="news-head"><div class="news-impact ' + ic + '"></div><span class="news-currency">' + (n.currency || 'GEN') + '</span></div>' +
+            '<div class="news-title">' + (n.title || '').substring(0, 65) + '</div></div>';
+    }
+    document.getElementById('sidebar-news').innerHTML = sh || '<div class="empty-state"><i class="bi bi-newspaper"></i><p>Haber yok</p></div>';
+
+    // Full page
+    let fh = '';
+    for (const n of news) {
+        const ic = n.impact === 'HIGH' ? 'high' : n.impact === 'MEDIUM' ? 'medium' : 'low';
+        const si = n.sentiment === 'BULLISH' ? '\uD83D\uDCC8' : n.sentiment === 'BEARISH' ? '\uD83D\uDCC9' : '';
+        fh += '<div class="news-item">' +
+            '<div class="news-head"><div class="news-impact ' + ic + '"></div><span class="news-currency">' + (n.currency || 'GEN') + '</span>' +
+            '<span style="margin-left:auto;font-size:0.7rem;color:var(--text-3)">' + (n.source || '') + '</span></div>' +
+            '<div class="news-title">' + (n.title || '') + ' ' + si + '</div>' +
+            '<div class="news-source">' + (n.summary || '').substring(0, 180) + '</div></div>';
+    }
+    document.getElementById('news-full').innerHTML = fh || '<div class="empty-state"><i class="bi bi-newspaper"></i><p>Haber yok</p></div>';
+
+    // Events
+    let eh = '';
+    for (const ev of (d.events || []).slice(0, 12)) {
+        const ic = ev.impact === 'HIGH' ? 'high' : 'medium';
+        eh += '<div class="event-item">' +
+            '<div class="event-impact-bar ' + ic + '"></div>' +
+            '<div><div class="event-name">' + ev.currency + ' \u2014 ' + ev.name + '</div>' +
+            '<div class="event-meta">' + (ev.schedule || '') + '</div></div></div>';
+    }
+    document.getElementById('events-list').innerHTML = eh || '<div class="empty-state"><p>Olay yok</p></div>';
+}
+
+// ═══ ANALYSIS ═══
+function initPairList() {
+    let h = '';
+    for (const [key, inst] of Object.entries(instruments)) {
+        h += '<div class="pair-list-item" data-pair="' + key + '" onclick="selectPair(\'' + key + '\')">' +
+            '<div class="pair-dot"></div><span class="pair-label">' + inst.name + '</span></div>';
+    }
+    document.getElementById('pair-list-analysis').innerHTML = h;
+}
+
+function selectPair(key) {
+    selectedPair = key;
+    document.querySelectorAll('.pair-list-item').forEach(el => el.classList.toggle('active', el.dataset.pair === key));
+    document.getElementById('analysis-pair-name').textContent = instruments[key]?.name || key;
+    document.getElementById('btn-analyze').disabled = false;
+}
+
+function goAnalysis(key) {
+    selectPair(key);
+    document.querySelectorAll('.sidebar-item').forEach(x => x.classList.remove('active'));
+    document.querySelector('[data-page="analysis"]').classList.add('active');
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-analysis').classList.add('active');
+}
+
+async function analyzePair() {
+    if (!selectedPair) return;
+    const btn = document.getElementById('btn-analyze');
+    const box = document.getElementById('analysis-commentary');
+    btn.disabled = true;
+    box.textContent = 'Analiz ediliyor...';
+    const d = await api('/api/analyze/' + selectedPair);
+    btn.disabled = false;
+    box.textContent = d.ok && d.data?.commentary ? d.data.commentary : 'Hata: ' + (d.error || 'Bilinmiyor');
+}
+
+// Auto refresh
+setInterval(() => { if (scannerRunning) loadDashboard(); }, 60000);
+</script>
 </body>
 </html>
